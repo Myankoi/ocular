@@ -5,7 +5,9 @@ use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\Guru\DashboardController as GuruDashboardController;
 use App\Http\Controllers\Admin\AcademicYearController;
 use App\Http\Controllers\Admin\SchoolClassController;
+use App\Http\Controllers\Admin\SubjectController;
 use Illuminate\Support\Facades\Route;
+
 
 Route::get('/', function () {
     if (! auth()->check()) {
@@ -35,6 +37,7 @@ Route::middleware(['auth', 'role:admin'])
         Route::resource('/classes', SchoolClassController::class)
             ->except('show')
             ->parameters(['classes' => 'schoolClass']);
+        Route::resource('/subjects', SubjectController::class)->except('show');
 
     });
 
