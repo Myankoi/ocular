@@ -1,0 +1,12 @@
+<x-layouts.app title="Tambah Siswa - Ocular">
+    <h1 class="mb-6 text-2xl font-semibold">Tambah Siswa</h1>
+
+    <form method="POST" action="{{ route('admin.students.store') }}" class="max-w-xl space-y-4">
+        @csrf
+
+        @include('admin.students.form', ['student' => null])
+
+        <button class="rounded-md bg-slate-900 px-4 py-2 text-white">Simpan</button>
+        <a href="{{ route('admin.students.index') }}" class="ml-2 text-sm underline">Batal</a>
+    </form>
+</x-layouts.app>
