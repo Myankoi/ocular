@@ -12,10 +12,15 @@ class DashboardController extends Controller
     public function __invoke(Request $request): View
     {
         $today = now()->dayOfWeekIso;
+        $date = now()->toDateString();
 
         return view('guru.dashboard', [
             'todaySchedules' => Schedule::query()
-                ->with(['subject', 'schoolClass'])
+                ->with([
+                    'subject',
+                    'schoolClass',
+                    'attendanceSessions' => fn ($query) => $query->whereDate('date', $date),
+                ])
                 ->where('user_id', $request->user()->id)
                 ->where('day_of_week', $today)
                 ->orderBy('start_time')
