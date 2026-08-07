@@ -10,6 +10,7 @@ use App\Http\Controllers\Admin\TeacherController;
 use App\Http\Controllers\Admin\StudentController;
 use App\Http\Controllers\Admin\ScheduleController;
 use App\Http\Controllers\Admin\StudentQrCodeController;
+use App\Http\Controllers\Guru\AttendanceSessionController;
 use Illuminate\Support\Facades\Route;
 
 
@@ -59,4 +60,7 @@ Route::middleware(['auth', 'role:guru'])
     ->name('guru.')
     ->group(function (): void {
         Route::get('/dashboard', GuruDashboardController::class)->name('dashboard');
+        Route::post('/schedules/{schedule}/sessions', [AttendanceSessionController::class, 'store'])->name('sessions.store');
+        Route::get('/sessions/{attendanceSession}', [AttendanceSessionController::class, 'show'])->name('sessions.show');
+        Route::patch('/sessions/{attendanceSession}/close', [AttendanceSessionController::class, 'close'])->name('sessions.close');
     });
