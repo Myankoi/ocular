@@ -11,6 +11,7 @@ use App\Http\Controllers\Admin\StudentController;
 use App\Http\Controllers\Admin\ScheduleController;
 use App\Http\Controllers\Admin\StudentQrCodeController;
 use App\Http\Controllers\Guru\AttendanceSessionController;
+use App\Http\Controllers\Guru\AttendanceScanController;
 use Illuminate\Support\Facades\Route;
 
 
@@ -63,4 +64,5 @@ Route::middleware(['auth', 'role:guru'])
         Route::post('/schedules/{schedule}/sessions', [AttendanceSessionController::class, 'store'])->name('sessions.store');
         Route::get('/sessions/{attendanceSession}', [AttendanceSessionController::class, 'show'])->name('sessions.show');
         Route::patch('/sessions/{attendanceSession}/close', [AttendanceSessionController::class, 'close'])->name('sessions.close');
+        Route::post('/sessions/{attendanceSession}/scan', AttendanceScanController::class)->name('sessions.scan');
     });
