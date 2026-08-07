@@ -76,6 +76,16 @@ class AttendanceScanController extends Controller
         if ($request->expectsJson()) {
             return response()->json([
                 'message' => $student->name . ' berhasil tercatat hadir.',
+                'attendance' => [
+                    'id' => $attendance->id,
+                    'status' => $attendance->status,
+                    'scanned_at' => $attendance->scanned_at?->format('H:i'),
+                ],
+                'student' => [
+                    'id' => $student->id,
+                    'name' => $student->name,
+                    'nisn' => $student->nisn,
+                ],
             ]);
         }
 

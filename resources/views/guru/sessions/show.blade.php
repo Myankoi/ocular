@@ -117,21 +117,21 @@
         <div class="grid gap-4 sm:grid-cols-4">
             <div class="rounded-lg border border-slate-200 bg-white p-4">
                 <p class="text-sm text-slate-500">Total</p>
-                <p class="mt-1 text-2xl font-semibold">{{ $attendances->count() }}</p>
+                <p class="mt-1 text-2xl font-semibold" data-count-total>{{ $attendances->count() }}</p>
             </div>
             <div class="rounded-lg border border-slate-200 bg-white p-4">
                 <p class="text-sm text-slate-500">Hadir</p>
-                <p class="mt-1 text-2xl font-semibold">{{ $attendances->where('status', 'hadir')->count() }}</p>
+                <p class="mt-1 text-2xl font-semibold" data-count-hadir>{{ $attendances->where('status', 'hadir')->count() }}</p>
             </div>
             <div class="rounded-lg border border-slate-200 bg-white p-4">
                 <p class="text-sm text-slate-500">Izin/Sakit</p>
-                <p class="mt-1 text-2xl font-semibold">
+                <p class="mt-1 text-2xl font-semibold" data-count-excused>
                     {{ $attendances->whereIn('status', ['izin', 'sakit'])->count() }}
                 </p>
             </div>
             <div class="rounded-lg border border-slate-200 bg-white p-4">
                 <p class="text-sm text-slate-500">Alpha</p>
-                <p class="mt-1 text-2xl font-semibold">{{ $attendances->where('status', 'alpha')->count() }}</p>
+                <p class="mt-1 text-2xl font-semibold" data-count-alpha>{{ $attendances->where('status', 'alpha')->count() }}</p>
             </div>
         </div>
 
@@ -147,11 +147,11 @@
                 </thead>
                 <tbody class="divide-y divide-slate-200">
                     @foreach ($attendances as $attendance)
-                        <tr>
+                        <tr data-attendance-row="{{ $attendance->id }}" data-attendance-status="{{ $attendance->status }}">
                             <td class="px-4 py-3">{{ $attendance->student->name }}</td>
                             <td class="px-4 py-3">{{ $attendance->student->nisn }}</td>
                             <td class="px-4 py-3">
-                                <span @class([
+                                <span data-attendance-status-badge @class([
                                     'rounded px-2 py-1 text-xs font-medium',
                                     'bg-green-50 text-green-700' => $attendance->status === 'hadir',
                                     'bg-yellow-50 text-yellow-700' => in_array($attendance->status, ['izin', 'sakit'], true),
@@ -160,7 +160,7 @@
                                     {{ strtoupper($attendance->status) }}
                                 </span>
                             </td>
-                            <td class="px-4 py-3">
+                            <td class="px-4 py-3" data-attendance-scanned-at>
                                 {{ $attendance->scanned_at?->format('H:i') ?? '-' }}
                             </td>
                         </tr>
@@ -190,6 +190,9 @@
                 const scannerStatus = root.querySelector('[data-scanner-status]');
                 const networkDot = root.querySelector('[data-network-dot]');
                 const networkLabel = root.querySelector('[data-network-label]');
+                const countHadir = document.querySelector('[data-count-hadir]');
+                const countExcused = document.querySelector('[data-count-excused]');
+                const countAlpha = document.querySelector('[data-count-alpha]');
                 const cooldown = new Map();
 
                 let scanner = null;
@@ -206,6 +209,76 @@
                     networkDot.classList.toggle('bg-green-500', navigator.onLine);
                     networkDot.classList.toggle('bg-red-500', !navigator.onLine);
                     networkLabel.textContent = navigator.onLine ? 'Online' : 'Offline';
+                };
+
+                const incrementCount = (element, amount) => {
+                    if (!element) {
+                        return;
+                    }
+
+                    element.textContent = String(Math.max(0, Number(element.textContent.trim()) + amount));
+                };
+
+                const updateCounts = (oldStatus, newStatus) => {
+                    if (oldStatus === newStatus) {
+                        return;
+                    }
+
+                    if (oldStatus === 'hadir') {
+                        incrementCount(countHadir, -1);
+                    }
+
+                    if (oldStatus === 'alpha') {
+                        incrementCount(countAlpha, -1);
+                    }
+
+                    if (['izin', 'sakit'].includes(oldStatus)) {
+                        incrementCount(countExcused, -1);
+                    }
+
+                    if (newStatus === 'hadir') {
+                        incrementCount(countHadir, 1);
+                    }
+
+                    if (newStatus === 'alpha') {
+                        incrementCount(countAlpha, 1);
+                    }
+
+                    if (['izin', 'sakit'].includes(newStatus)) {
+                        incrementCount(countExcused, 1);
+                    }
+                };
+
+                const setBadgeStatus = (badge, status) => {
+                    badge.className = 'rounded px-2 py-1 text-xs font-medium';
+
+                    if (status === 'hadir') {
+                        badge.classList.add('bg-green-50', 'text-green-700');
+                    } else if (['izin', 'sakit'].includes(status)) {
+                        badge.classList.add('bg-yellow-50', 'text-yellow-700');
+                    } else {
+                        badge.classList.add('bg-red-50', 'text-red-700');
+                    }
+
+                    badge.textContent = status.toUpperCase();
+                };
+
+                const updateAttendanceRow = (attendance) => {
+                    const row = document.querySelector(`[data-attendance-row="${attendance.id}"]`);
+
+                    if (!row) {
+                        return;
+                    }
+
+                    const oldStatus = row.dataset.attendanceStatus;
+                    const newStatus = attendance.status;
+                    const badge = row.querySelector('[data-attendance-status-badge]');
+                    const scannedAt = row.querySelector('[data-attendance-scanned-at]');
+
+                    row.dataset.attendanceStatus = newStatus;
+                    setBadgeStatus(badge, newStatus);
+                    scannedAt.textContent = attendance.scanned_at || '-';
+                    updateCounts(oldStatus, newStatus);
                 };
 
                 const submitScan = async (nisn) => {
@@ -227,8 +300,11 @@
                             return;
                         }
 
-                        setMessage(payload?.message || 'Scan berhasil.', 'success');
-                        window.location.reload();
+                        setMessage(payload?.message || 'Scan berhasil. Kamera tetap standby.', 'success');
+
+                        if (payload?.attendance) {
+                            updateAttendanceRow(payload.attendance);
+                        }
                     } catch (error) {
                         setMessage('Koneksi bermasalah. Scan belum tersimpan.', 'error');
                     }
