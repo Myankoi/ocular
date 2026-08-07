@@ -9,6 +9,7 @@ use App\Http\Controllers\Admin\SubjectController;
 use App\Http\Controllers\Admin\TeacherController;
 use App\Http\Controllers\Admin\StudentController;
 use App\Http\Controllers\Admin\ScheduleController;
+use App\Http\Controllers\Admin\StudentQrCodeController;
 use Illuminate\Support\Facades\Route;
 
 
@@ -43,6 +44,12 @@ Route::middleware(['auth', 'role:admin'])
         Route::resource('/subjects', SubjectController::class)->except('show');
         Route::resource('/teachers', TeacherController::class)->except('show');
         Route::resource('/students', StudentController::class)->except('show');
+
+        Route::get('/students/qr-codes', [StudentQrCodeController::class, 'index'])->name('students.qr-codes.index');
+        Route::get('/students/{student}/qr-code', [StudentQrCodeController::class, 'show'])->name('students.qr-codes.show');
+        Route::get('/students/{student}/qr-code/download', [StudentQrCodeController::class, 'download'])->name('students.qr-codes.download');
+        Route::get('/classes/{schoolClass}/qr-codes/download', [StudentQrCodeController::class, 'downloadClass'])->name('classes.qr-codes.download');
+
         Route::resource('/schedules', ScheduleController::class)->except('show');
 
     });
