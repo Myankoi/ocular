@@ -7,22 +7,21 @@ use App\Models\Attendance;
 use App\Models\AttendanceLog;
 use App\Models\AttendanceSession;
 use App\Models\Student;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class AttendanceScanController extends Controller
 {
-    public function __invoke(Request $request, AttendanceSession $attendanceSession): RedirectResponse
+    public function __invoke(Request $request, AttendanceSession $attendanceSession): RedirectResponse|JsonResponse
     {
         $attendanceSession->load('schedule.schoolClass');
 
         abort_unless($attendanceSession->schedule->user_id === $request->user()->id, 403);
 
         if ($attendanceSession->status !== 'open') {
-            return back()->withErrors([
-                'scan' => 'Sesi absensi sudah ditutup.',
-            ]);
+            return $this->scanError($request, 'Sesi absensi sudah ditutup.');
         }
 
         $data = $request->validate([
@@ -35,15 +34,11 @@ class AttendanceScanController extends Controller
             ->first();
 
         if (! $student) {
-            return back()->withErrors([
-                'scan' => 'NISN tidak ditemukan atau siswa tidak aktif.',
-            ]);
+            return $this->scanError($request, 'NISN tidak ditemukan atau siswa tidak aktif.');
         }
 
         if ($student->class_id !== $attendanceSession->schedule->class_id) {
-            return back()->withErrors([
-                'scan' => 'Siswa ditemukan, tapi bukan bagian dari kelas pada sesi ini.',
-            ]);
+            return $this->scanError($request, 'Siswa ditemukan, tapi bukan bagian dari kelas pada sesi ini.');
         }
 
         $attendance = Attendance::query()
@@ -52,15 +47,11 @@ class AttendanceScanController extends Controller
             ->first();
 
         if (! $attendance) {
-            return back()->withErrors([
-                'scan' => 'Siswa belum terdaftar di roster sesi ini. Tutup dan buka ulang sesi jika data kelas baru berubah.',
-            ]);
+            return $this->scanError($request, 'Siswa belum terdaftar di roster sesi ini. Tutup dan buka ulang sesi jika data kelas baru berubah.');
         }
 
         if ($attendance->status === 'hadir') {
-            return back()->withErrors([
-                'scan' => $student->name . ' sudah tercatat hadir.',
-            ]);
+            return $this->scanError($request, $student->name . ' sudah tercatat hadir.');
         }
 
         DB::transaction(function () use ($attendance, $request): void {
@@ -82,8 +73,28 @@ class AttendanceScanController extends Controller
             ]);
         });
 
+        if ($request->expectsJson()) {
+            return response()->json([
+                'message' => $student->name . ' berhasil tercatat hadir.',
+            ]);
+        }
+
         return redirect()
             ->route('guru.sessions.show', $attendanceSession)
             ->with('success', $student->name . ' berhasil tercatat hadir.');
+    }
+
+    private function scanError(Request $request, string $message): RedirectResponse|JsonResponse
+    {
+        if ($request->expectsJson()) {
+            return response()->json([
+                'message' => $message,
+                'errors' => [
+                    'scan' => [$message],
+                ],
+            ], 422);
+        }
+
+        return back()->withErrors(['scan' => $message]);
     }
 }
