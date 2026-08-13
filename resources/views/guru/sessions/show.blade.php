@@ -1,10 +1,11 @@
 <x-layouts.app title="Sesi Absensi - Ocular">
-    <div class="space-y-4">
+    <a href="{{ route('guru.dashboard') }}" class="mb-4 inline-flex min-h-10 items-center gap-2 text-xs font-bold uppercase tracking-wider text-ocular-teal hover:text-ocular-teal-dark"><span class="text-base">←</span> Dashboard</a>
+    <div class="space-y-5 pb-2">
         <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
-                <p class="text-sm font-medium uppercase tracking-wide text-slate-500">Sesi Absensi</p>
-                <h1 class="text-2xl font-semibold">{{ $session->schedule->subject->name }}</h1>
-                <p class="text-sm text-slate-500">
+                <p class="text-[10px] font-bold uppercase tracking-[0.22em] text-ocular-teal">Sesi absensi</p>
+                <h1 class="mt-1 text-2xl font-black tracking-tight text-ocular-teal sm:text-3xl">{{ $session->schedule->subject->name }}</h1>
+                <p class="mt-2 font-mono text-xs text-ocular-copy/70">
                     {{ $session->schedule->schoolClass->name }} -
                     {{ $session->date->format('d/m/Y') }} -
                     {{ substr($session->schedule->start_time, 0, 5) }} - {{ substr($session->schedule->end_time, 0, 5) }}
@@ -17,33 +18,33 @@
                         @csrf
                         @method('PATCH')
 
-                        <button class="rounded-md bg-slate-900 px-4 py-2 text-sm text-white" onclick="return confirm('Tutup sesi absensi ini?')">
+                        <x-ui.button variant="teal" onclick="return confirm('Tutup sesi absensi ini?')">
                             Tutup Sesi
-                        </button>
+                        </x-ui.button>
                     </form>
                 @else
-                    <span class="rounded-md bg-slate-100 px-3 py-2 text-sm text-slate-700">
-                        Sesi Ditutup
-                    </span>
+                    <x-ui.status-badge status="closed" />
                 @endif
             </div>
         </div>
 
-        @if (session('success'))
-            <div class="rounded-md bg-green-50 p-3 text-sm text-green-700">{{ session('success') }}</div>
-        @endif
+        <x-ui.flash :message="session('success')" />
 
         @error('session')
-            <div class="rounded-md bg-red-50 p-3 text-sm text-red-700">{{ $message }}</div>
+            <x-ui.flash type="error" :message="$message" />
         @enderror
 
         @error('scan')
-            <div class="rounded-md bg-red-50 p-3 text-sm text-red-700">{{ $message }}</div>
+            <x-ui.flash type="error" :message="$message" />
+        @enderror
+
+        @error('attendance')
+            <x-ui.flash type="error" :message="$message" />
         @enderror
 
         @if ($session->status === 'open')
-            <div
-                class="rounded-lg border border-slate-200 bg-white p-4"
+            <x-ui.card
+                class="border border-slate-200 bg-white"
                 data-qr-scanner
                 data-submit-url="{{ route('guru.sessions.scan', $session) }}"
                 data-csrf-token="{{ csrf_token() }}"
@@ -64,45 +65,65 @@
 
                 <div data-scan-message class="mt-3 hidden rounded-md p-3 text-sm"></div>
 
-                <div class="mt-4 grid gap-4 lg:grid-cols-[360px_1fr]">
-                    <div class="space-y-3">
-                        <div id="qr-reader" class="overflow-hidden rounded-lg border border-slate-200 bg-slate-50"></div>
+                <div class="mt-4 space-y-4">
+                    <div class="ocular-scanner-stage space-y-3" data-scanner-stage>
+                        <div class="ocular-scanner-viewport relative h-[min(62vh,34rem)] overflow-hidden bg-slate-950 p-3">
+                            <div id="qr-reader" class="min-h-[280px] overflow-hidden bg-slate-900"></div>
+                            <div class="ocular-scanner-frame pointer-events-none absolute left-1/2 top-1/2 size-[min(70vw,18rem)] -translate-x-1/2 -translate-y-1/2 border-4 border-ocular-orange sm:size-64">
+                                <span class="absolute -left-1 -top-1 size-6 border-l-4 border-t-4 border-white"></span>
+                                <span class="absolute -right-1 -top-1 size-6 border-r-4 border-t-4 border-white"></span>
+                                <span class="absolute -bottom-1 -left-1 size-6 border-b-4 border-l-4 border-white"></span>
+                                <span class="absolute -bottom-1 -right-1 size-6 border-b-4 border-r-4 border-white"></span>
+                            </div>
+                        </div>
 
                         <div class="flex gap-2">
-                            <button
+                            <x-ui.button
                                 type="button"
+                                variant="primary"
                                 data-start-scanner
-                                class="rounded-md bg-slate-900 px-4 py-2 text-sm text-white disabled:cursor-not-allowed disabled:opacity-50"
+                                class="disabled:cursor-not-allowed disabled:opacity-50"
                             >
                                 Buka Kamera
-                            </button>
+                            </x-ui.button>
 
-                            <button
+                            <x-ui.button
                                 type="button"
+                                variant="outline"
                                 data-stop-scanner
                                 disabled
-                                class="rounded-md border px-4 py-2 text-sm disabled:cursor-not-allowed disabled:opacity-50"
+                                class="disabled:cursor-not-allowed disabled:opacity-50"
                             >
                                 Tutup Kamera
-                            </button>
+                            </x-ui.button>
+
+                            <x-ui.button
+                                type="button"
+                                variant="muted"
+                                data-fullscreen-scanner
+                                aria-pressed="false"
+                            >
+                                Layar penuh
+                            </x-ui.button>
                         </div>
                     </div>
 
-                    <div class="rounded-lg border border-slate-200 p-4">
+                    <div class="border border-slate-200 bg-ocular-surface p-4 sm:p-5">
                         <h3 class="font-medium">Input Manual NISN</h3>
-                        <form method="POST" action="{{ route('guru.sessions.scan', $session) }}" class="mt-3 flex flex-col gap-3 sm:flex-row">
+                        <form method="POST" action="{{ route('guru.sessions.scan', $session) }}" class="mt-3 flex flex-col gap-3 sm:flex-row" data-manual-scan-form>
                             @csrf
 
                             <input
                                 name="nisn"
+                                data-manual-nisn
                                 placeholder="Ketik NISN"
                                 autofocus
                                 class="w-full rounded-md border px-3 py-2"
                             >
 
-                            <button class="rounded-md bg-slate-900 px-4 py-2 text-white">
+                            <x-ui.button variant="teal">
                                 Tandai Hadir
-                            </button>
+                            </x-ui.button>
                         </form>
 
                         <div class="mt-4 text-sm text-slate-500">
@@ -111,31 +132,24 @@
                         </div>
                     </div>
                 </div>
-            </div>
+            </x-ui.card>
         @endif
 
         <div class="grid gap-4 sm:grid-cols-4">
-            <div class="rounded-lg border border-slate-200 bg-white p-4">
-                <p class="text-sm text-slate-500">Total</p>
-                <p class="mt-1 text-2xl font-semibold" data-count-total>{{ $attendances->count() }}</p>
-            </div>
-            <div class="rounded-lg border border-slate-200 bg-white p-4">
-                <p class="text-sm text-slate-500">Hadir</p>
-                <p class="mt-1 text-2xl font-semibold" data-count-hadir>{{ $attendances->where('status', 'hadir')->count() }}</p>
-            </div>
-            <div class="rounded-lg border border-slate-200 bg-white p-4">
-                <p class="text-sm text-slate-500">Izin/Sakit</p>
-                <p class="mt-1 text-2xl font-semibold" data-count-excused>
-                    {{ $attendances->whereIn('status', ['izin', 'sakit'])->count() }}
-                </p>
-            </div>
-            <div class="rounded-lg border border-slate-200 bg-white p-4">
-                <p class="text-sm text-slate-500">Alpha</p>
-                <p class="mt-1 text-2xl font-semibold" data-count-alpha>{{ $attendances->where('status', 'alpha')->count() }}</p>
-            </div>
+            <x-ui.stat-card label="Total" :value="$studentTotal" tone="teal" data-count-total />
+            <x-ui.stat-card label="Hadir" :value="$studentPresent" tone="success" data-count-hadir />
+            <x-ui.stat-card label="Izin / Sakit" :value="$studentExcused" tone="warning" data-count-excused />
+            <x-ui.stat-card label="Alpha" :value="$studentAlpha" tone="danger" data-count-alpha />
         </div>
 
         <div class="overflow-hidden rounded-lg border border-slate-200 bg-white">
+            <div class="border-b border-slate-200 px-4 py-4 sm:px-5">
+                <div class="flex items-center justify-between gap-3">
+                    <h2 class="text-xs font-black uppercase tracking-widest text-ocular-teal">Daftar siswa</h2>
+                    <span class="font-mono text-[10px] font-bold text-ocular-accent">{{ $studentTotal }} siswa</span>
+                </div>
+            </div>
+            <div class="overflow-x-auto">
             <table class="w-full text-left text-sm">
                 <thead class="bg-slate-100">
                     <tr>
@@ -143,6 +157,7 @@
                         <th class="px-4 py-3">NISN</th>
                         <th class="px-4 py-3">Status</th>
                         <th class="px-4 py-3">Scan</th>
+                        <th class="px-4 py-3">Ubah status</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-200">
@@ -151,25 +166,35 @@
                             <td class="px-4 py-3">{{ $attendance->student->name }}</td>
                             <td class="px-4 py-3">{{ $attendance->student->nisn }}</td>
                             <td class="px-4 py-3">
-                                <span data-attendance-status-badge @class([
-                                    'rounded px-2 py-1 text-xs font-medium',
-                                    'bg-green-50 text-green-700' => $attendance->status === 'hadir',
-                                    'bg-yellow-50 text-yellow-700' => in_array($attendance->status, ['izin', 'sakit'], true),
-                                    'bg-red-50 text-red-700' => $attendance->status === 'alpha',
-                                ])>
-                                    {{ strtoupper($attendance->status) }}
-                                </span>
+                                <x-ui.status-badge :status="$attendance->status" data-attendance-status-badge />
                             </td>
                             <td class="px-4 py-3" data-attendance-scanned-at>
                                 {{ $attendance->scanned_at?->format('H:i') ?? '-' }}
+                            </td>
+                            <td class="px-4 py-3">
+                                @if ($session->date->gte(now()->subDays(3)->startOfDay()))
+                                    <form method="POST" action="{{ route('guru.sessions.attendances.update', [$session, $attendance]) }}" class="flex min-w-36 items-center gap-2">
+                                        @csrf
+                                        @method('PATCH')
+                                        <select name="status" class="min-h-10 rounded-md border border-slate-300 bg-white px-2 text-xs" aria-label="Status {{ $attendance->student->name }}">
+                                            @foreach (['hadir' => 'Hadir', 'sakit' => 'Sakit', 'izin' => 'Izin', 'alpha' => 'Alpha'] as $value => $label)
+                                                <option value="{{ $value }}" @selected($attendance->status === $value)>{{ $label }}</option>
+                                            @endforeach
+                                        </select>
+                                        <button class="min-h-10 rounded-md border border-slate-300 px-2 text-xs font-semibold text-slate-700 hover:bg-slate-50">Simpan</button>
+                                    </form>
+                                @else
+                                    <span class="text-xs text-slate-400">Terkunci H+3</span>
+                                @endif
                             </td>
                         </tr>
                     @endforeach
                 </tbody>
             </table>
+            </div>
+            <div class="px-4 pb-4 sm:px-5"><x-ui.pagination :paginator="$attendances" /></div>
         </div>
 
-        <a href="{{ route('guru.dashboard') }}" class="inline-flex text-sm underline">Kembali ke dashboard</a>
     </div>
 
     @push('scripts')
@@ -185,15 +210,20 @@
                 const csrfToken = root.dataset.csrfToken;
                 const startButton = root.querySelector('[data-start-scanner]');
                 const stopButton = root.querySelector('[data-stop-scanner]');
+                const fullscreenButton = root.querySelector('[data-fullscreen-scanner]');
+                const scannerStage = root.querySelector('[data-scanner-stage]');
                 const messageBox = root.querySelector('[data-scan-message]');
                 const lastScanned = root.querySelector('[data-last-scanned]');
                 const scannerStatus = root.querySelector('[data-scanner-status]');
+                const manualScanForm = root.querySelector('[data-manual-scan-form]');
+                const manualNisn = root.querySelector('[data-manual-nisn]');
                 const networkDot = root.querySelector('[data-network-dot]');
                 const networkLabel = root.querySelector('[data-network-label]');
                 const countHadir = document.querySelector('[data-count-hadir]');
                 const countExcused = document.querySelector('[data-count-excused]');
                 const countAlpha = document.querySelector('[data-count-alpha]');
                 const cooldown = new Map();
+                let audioContext = null;
 
                 let scanner = null;
                 let isScanning = false;
@@ -205,10 +235,43 @@
                     messageBox.classList.add(type === 'success' ? 'text-green-700' : 'text-red-700');
                 };
 
+                const beep = (frequency = 880, duration = 100) => {
+                    if (!audioContext) return;
+                    const oscillator = audioContext.createOscillator();
+                    const gain = audioContext.createGain();
+                    oscillator.frequency.value = frequency;
+                    gain.gain.value = 0.08;
+                    oscillator.connect(gain).connect(audioContext.destination);
+                    oscillator.start();
+                    oscillator.stop(audioContext.currentTime + duration / 1000);
+                };
+
+                const announceAttendance = (studentName) => {
+                    if (!studentName || !('speechSynthesis' in window) || typeof SpeechSynthesisUtterance === 'undefined') {
+                        return;
+                    }
+
+                    window.speechSynthesis.cancel();
+                    const announcement = new SpeechSynthesisUtterance(`${studentName} hadir`);
+                    announcement.lang = 'id-ID';
+                    announcement.rate = 0.95;
+                    announcement.pitch = 1;
+                    announcement.volume = 1;
+                    window.speechSynthesis.speak(announcement);
+                };
+
                 const setNetworkState = () => {
                     networkDot.classList.toggle('bg-green-500', navigator.onLine);
                     networkDot.classList.toggle('bg-red-500', !navigator.onLine);
                     networkLabel.textContent = navigator.onLine ? 'Online' : 'Offline';
+                };
+
+                const updateFullscreenButton = () => {
+                    if (!fullscreenButton) return;
+
+                    const isFullscreen = document.fullscreenElement === scannerStage;
+                    fullscreenButton.textContent = isFullscreen ? 'Keluar layar penuh' : 'Layar penuh';
+                    fullscreenButton.setAttribute('aria-pressed', isFullscreen ? 'true' : 'false');
                 };
 
                 const incrementCount = (element, amount) => {
@@ -250,14 +313,20 @@
                 };
 
                 const setBadgeStatus = (badge, status) => {
-                    badge.className = 'rounded px-2 py-1 text-xs font-medium';
+                    if (!badge) {
+                        return;
+                    }
+
+                    badge.className = 'inline-flex px-2 py-1 text-[10px] font-black uppercase tracking-wider';
 
                     if (status === 'hadir') {
-                        badge.classList.add('bg-green-50', 'text-green-700');
-                    } else if (['izin', 'sakit'].includes(status)) {
-                        badge.classList.add('bg-yellow-50', 'text-yellow-700');
+                        badge.classList.add('bg-emerald-50', 'text-emerald-700');
+                    } else if (status === 'sakit') {
+                        badge.classList.add('bg-amber-50', 'text-amber-700');
+                    } else if (status === 'izin') {
+                        badge.classList.add('bg-blue-50', 'text-blue-700');
                     } else {
-                        badge.classList.add('bg-red-50', 'text-red-700');
+                        badge.classList.add('bg-rose-50', 'text-rose-700');
                     }
 
                     badge.textContent = status.toUpperCase();
@@ -283,6 +352,8 @@
 
                 const submitScan = async (nisn) => {
                     try {
+                        const controller = new AbortController();
+                        const timeout = setTimeout(() => controller.abort(), 5000);
                         const response = await fetch(submitUrl, {
                             method: 'POST',
                             headers: {
@@ -291,22 +362,28 @@
                                 'X-CSRF-TOKEN': csrfToken,
                             },
                             body: JSON.stringify({ nisn }),
+                            signal: controller.signal,
                         });
+                        clearTimeout(timeout);
 
                         const payload = await response.json().catch(() => null);
 
                         if (!response.ok) {
+                            beep(220, 180);
                             setMessage(payload?.errors?.scan?.[0] || payload?.message || 'Scan gagal diproses.', 'error');
                             return;
                         }
 
                         setMessage(payload?.message || 'Scan berhasil. Kamera tetap standby.', 'success');
+                        beep();
+                        announceAttendance(payload?.student?.name);
 
                         if (payload?.attendance) {
                             updateAttendanceRow(payload.attendance);
                         }
                     } catch (error) {
-                        setMessage('Koneksi bermasalah. Scan belum tersimpan.', 'error');
+                        beep(220, 180);
+                        setMessage(error.name === 'AbortError' ? 'Request timeout. Scan belum tersimpan.' : 'Koneksi bermasalah. Scan belum tersimpan.', 'error');
                     }
                 };
 
@@ -335,9 +412,18 @@
                     submitScan(nisn);
                 };
 
+                manualScanForm?.addEventListener('submit', (event) => {
+                    event.preventDefault();
+                    handleScan(manualNisn?.value || '');
+                    if (manualNisn) {
+                        manualNisn.value = '';
+                        manualNisn.focus();
+                    }
+                });
+
                 startButton.addEventListener('click', async () => {
                     if (!window.Html5Qrcode) {
-                        setMessage('Library scanner belum ter-load. Jalankan npm run build atau npm run dev.', 'error');
+                        setMessage('Library scanner belum ter-load. Pastikan Vite aktif: docker compose up -d vite atau npm run dev.', 'error');
                         return;
                     }
 
@@ -346,11 +432,16 @@
                     }
 
                     scanner = new window.Html5Qrcode('qr-reader');
+                    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+                    if (AudioContextClass) {
+                        audioContext = new AudioContextClass();
+                        await audioContext.resume();
+                    }
 
                     try {
                         await scanner.start(
                             { facingMode: 'environment' },
-                            { fps: 10, qrbox: { width: 240, height: 240 } },
+                            { fps: 10 },
                             handleScan,
                             () => {}
                         );
@@ -380,6 +471,24 @@
                     setMessage('Kamera ditutup.', 'success');
                 });
 
+                fullscreenButton?.addEventListener('click', async () => {
+                    if (!document.fullscreenEnabled || !scannerStage) {
+                        setMessage('Mode layar penuh tidak didukung browser ini.', 'error');
+                        return;
+                    }
+
+                    try {
+                        if (document.fullscreenElement === scannerStage) {
+                            await document.exitFullscreen();
+                        } else {
+                            await scannerStage.requestFullscreen();
+                        }
+                    } catch (error) {
+                        setMessage('Mode layar penuh tidak dapat dibuka.', 'error');
+                    }
+                });
+
+                document.addEventListener('fullscreenchange', updateFullscreenButton);
                 window.addEventListener('online', setNetworkState);
                 window.addEventListener('offline', setNetworkState);
                 setNetworkState();

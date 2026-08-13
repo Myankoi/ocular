@@ -5,17 +5,24 @@ namespace App\Http\Controllers\Guru;
 use App\Http\Controllers\Controller;
 use App\Models\Attendance;
 use App\Models\AttendanceSession;
+use App\Models\AttendanceLog;
 use App\Models\Schedule;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\View\View;
 
 class AttendanceSessionController extends Controller
 {
     public function store(Request $request, Schedule $schedule): RedirectResponse
     {
+        $schedule->load('academicYear');
         abort_unless($schedule->user_id === $request->user()->id, 403);
+
+        if (! $schedule->academicYear?->is_active || (int) $schedule->day_of_week !== now()->dayOfWeekIso) {
+            return back()->withErrors(['session' => 'Sesi hanya dapat dibuka untuk jadwal aktif pada hari ini.']);
+        }
 
         $today = now()->toDateString();
 
@@ -80,11 +87,30 @@ class AttendanceSessionController extends Controller
 
         abort_unless($attendanceSession->schedule->user_id === $request->user()->id, 403);
 
+        $allAttendances = $attendanceSession->attendances
+            ->sortBy(fn (Attendance $attendance) => $attendance->student->name)
+            ->values();
+        $perPage = 25;
+        $page = max(1, (int) $request->integer('student_page', 1));
+        $attendances = new LengthAwarePaginator(
+            $allAttendances->forPage($page, $perPage)->values(),
+            $allAttendances->count(),
+            $perPage,
+            $page,
+            [
+                'path' => $request->url(),
+                'query' => $request->query(),
+                'pageName' => 'student_page',
+            ],
+        );
+
         return view('guru.sessions.show', [
             'session' => $attendanceSession,
-            'attendances' => $attendanceSession->attendances
-                ->sortBy(fn (Attendance $attendance) => $attendance->student->name)
-                ->values(),
+            'attendances' => $attendances,
+            'studentTotal' => $allAttendances->count(),
+            'studentPresent' => $allAttendances->where('status', 'hadir')->count(),
+            'studentExcused' => $allAttendances->whereIn('status', ['izin', 'sakit'])->count(),
+            'studentAlpha' => $allAttendances->where('status', 'alpha')->count(),
         ]);
     }
 
@@ -106,5 +132,41 @@ class AttendanceSessionController extends Controller
         return redirect()
             ->route('guru.sessions.show', $attendanceSession)
             ->with('success', 'Sesi absensi berhasil ditutup.');
+    }
+
+    public function updateAttendance(Request $request, AttendanceSession $attendanceSession, Attendance $attendance): RedirectResponse
+    {
+        $attendanceSession->load('schedule');
+
+        abort_unless($attendanceSession->schedule->user_id === $request->user()->id, 403);
+        abort_unless($attendance->session_id === $attendanceSession->id, 404);
+
+        if ($attendanceSession->date->lt(now()->subDays(3)->startOfDay())) {
+            return back()->withErrors(['attendance' => 'Perubahan guru hanya dapat dilakukan sampai H+3 dari tanggal sesi.']);
+        }
+
+        $data = $request->validate([
+            'status' => ['required', 'in:hadir,sakit,izin,alpha'],
+            'notes' => ['nullable', 'string', 'max:1000'],
+        ]);
+
+        if ($attendance->status !== $data['status']) {
+            AttendanceLog::create([
+                'attendance_id' => $attendance->id,
+                'old_status' => $attendance->status,
+                'new_status' => $data['status'],
+                'changed_by' => $request->user()->id,
+                'changed_at' => now(),
+            ]);
+        }
+
+        $attendance->update([
+            'status' => $data['status'],
+            'notes' => $data['notes'] ?? null,
+            'scanned_at' => $data['status'] === 'hadir' ? ($attendance->scanned_at ?? now()) : null,
+            'updated_by' => $request->user()->id,
+        ]);
+
+        return back()->with('success', 'Status kehadiran berhasil diperbarui.');
     }
 }

@@ -47,17 +47,19 @@ class AttendanceScanController extends Controller
             ->first();
 
         if (! $attendance) {
-            return $this->scanError($request, 'Siswa belum terdaftar di roster sesi ini. Tutup dan buka ulang sesi jika data kelas baru berubah.');
+            return $this->scanError($request, 'Siswa belum terdaftar pada daftar kehadiran sesi ini. Tutup dan buka ulang sesi jika data kelas baru berubah.');
         }
 
-        if ($attendance->status === 'hadir') {
-            return $this->scanError($request, $student->name . ' sudah tercatat hadir.');
-        }
+        $result = DB::transaction(function () use ($attendance, $request, $student): array {
+            $lockedAttendance = Attendance::query()->whereKey($attendance->id)->lockForUpdate()->firstOrFail();
 
-        DB::transaction(function () use ($attendance, $request): void {
-            $oldStatus = $attendance->status;
+            if ($lockedAttendance->status === 'hadir') {
+                return ['duplicate' => true, 'attendance' => $lockedAttendance];
+            }
 
-            $attendance->update([
+            $oldStatus = $lockedAttendance->status;
+
+            $lockedAttendance->update([
                 'status' => 'hadir',
                 'scanned_at' => now(),
                 'updated_by' => $request->user()->id,
@@ -65,13 +67,21 @@ class AttendanceScanController extends Controller
             ]);
 
             AttendanceLog::create([
-                'attendance_id' => $attendance->id,
+                'attendance_id' => $lockedAttendance->id,
                 'old_status' => $oldStatus,
                 'new_status' => 'hadir',
                 'changed_by' => $request->user()->id,
                 'changed_at' => now(),
             ]);
+
+            return ['duplicate' => false, 'attendance' => $lockedAttendance];
         });
+
+        if ($result['duplicate']) {
+            return $this->scanError($request, $student->name . ' sudah tercatat hadir.');
+        }
+
+        $attendance = $result['attendance'];
 
         if ($request->expectsJson()) {
             return response()->json([
