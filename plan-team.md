@@ -9,7 +9,7 @@ Panduan kerja untuk **3 Developer** mengerjakan project ini bareng-bareng: siapa
 ## 0. Prinsip Kerja Tim
 
 1. **Merge kecil & sering**, jangan nunggu satu modul 100% selesai baru di-push. Branch yang hidup >2 hari tanpa merge = risiko conflict besar.
-2. **Jangan pernah kerja langsung di `main` atau `develop`.** Semua kerjaan lewat feature branch + Pull Request (PR).
+2. **Jangan pernah kerja langsung di `main` atau `dev`.** Semua kerjaan lewat feature branch + Pull Request (PR).
 3. **Satu fitur = satu branch = satu PR.** Jangan gabung banyak fitur gak nyambung dalam satu PR — bikin review lambat dan susah di-rollback kalau ada bug.
 4. **Yang bikin branch, yang tanggung jawab resolve conflict-nya** — bukan reviewer.
 5. **Migration itu shared resource** — lihat Section 7 sebelum nyentuh skema database punya orang lain.
@@ -36,13 +36,13 @@ Pembagian berdasarkan alur data di PRD: **Dev A** bikin data master duluan (dipa
 Ini **wajib dikerjain bareng-bareng dulu** (idealnya <1 hari) sebelum split ke 3 jalur, supaya semua orang punya fondasi yang sama dan gak saling nunggu:
 
 1. **Init project Laravel 13** + install Livewire 3, Tailwind v4, Alpine.js, Vite — 1 orang drive, 2 lainnya review.
-2. **Buat SEMUA migration** sesuai ERD di `prd.md` Section 4 (termasuk tabel yang belum dipakai fase awal seperti `attendance_logs`) — dikerjain bareng dalam **satu branch `feature/setup-foundation`**, satu PR, di-merge duluan ke `develop`. Ini mencegah 3 orang bikin migration berantakan belakangan.
+2. **Buat SEMUA migration** sesuai ERD di `prd.md` Section 4 (termasuk tabel yang belum dipakai fase awal seperti `attendance_logs`) — dikerjain bareng dalam **satu branch `feature/setup-foundation`**, satu PR, di-merge duluan ke `dev`. Ini mencegah 3 orang bikin migration berantakan belakangan.
 3. **Buat seeder/factory dummy data**: tahun ajaran aktif, 6 kelas, beberapa mapel, 8 guru, ~50 siswa contoh, beberapa jadwal, dan **beberapa attendance session + attendance record dummy** (biar Dev C bisa langsung develop dashboard/laporan tanpa nunggu scanner Dev B jadi).
 4. **Setup Auth skeleton** (role `admin`/`guru`, middleware, redirect ke dashboard sesuai role) — dasar buat semua route terproteksi.
 5. **Base layout** (navbar per role, Tailwind base, struktur folder Livewire component) supaya 3 dev gak bikin layout beda-beda.
-6. Sepakatin **branch `develop`** sebagai basis kerja semua orang mulai sekarang (lihat Section 4).
+6. Sepakatin **branch `dev`** sebagai basis kerja semua orang mulai sekarang (lihat Section 4).
 
-Setelah Fase 0 merge ke `develop`, baru split ke 3 track paralel.
+Setelah Fase 0 merge ke `dev`, baru split ke 3 track paralel.
 
 ---
 
@@ -99,11 +99,92 @@ Legend: 🔴 Must-have (wajib buat go-live) · 🟡 Nice-to-have (kalau waktu cu
 
 ---
 
+### Status Implementasi di `dev` (audit 14 Agustus 2026)
+
+Status ini berdasarkan kode yang benar-benar ada di branch `dev` pada commit `938f4e4`, bukan hanya berdasarkan nama branch yang pernah dibuat.
+
+Legend: `[x]` implementasi utama sudah ada · `[ ]` belum selesai · `Parsial` berarti sebagian requirement sudah ada, tetapi belum memenuhi seluruh scope task.
+
+#### Fase 0 — Foundation
+
+- [x] Laravel 13, Tailwind v4, Vite, model, migration, dan relasi inti tersedia.
+- [x] Seeder berisi tahun ajaran aktif, 6 kelas, 8 guru, 60 siswa, mapel, jadwal, sesi, attendance, dan attendance log dummy.
+- [x] Login, logout, middleware role `admin`/`guru`, serta redirect dashboard per role tersedia.
+- [x] Base layout dan navbar berbasis role tersedia.
+- [ ] Versi stack belum sama dengan plan: project memakai Livewire `^4.3`, sedangkan plan masih menyebut Livewire 3. Struktur komponen Livewire juga belum dipakai.
+- [ ] Test foundation masih berupa 3 example/smoke test; belum menguji auth, role middleware, migration, dan seeder.
+
+#### Dev A — Data Master & Jadwal
+
+- [x] A1 — CRUD Tahun Ajaran & Semester.
+- [x] A2 — CRUD Kelas yang terikat tahun ajaran.
+- [x] A3 — CRUD Mata Pelajaran.
+- [x] A4 — CRUD Guru dan assign mapel many-to-many.
+- [x] A5 — CRUD Siswa manual.
+- [x] A6 — Generate QR berisi pure NISN, download per siswa, dan batch ZIP per kelas.
+- [ ] A7 — Import siswa CSV dan laporan error per baris belum ada. Nice-to-have.
+- [x] A8 — CRUD Jadwal manual.
+- [x] A9 — Validasi overlap jadwal untuk kelas atau guru sudah ada di `ScheduleController`, walaupun belum punya test otomatis.
+- [ ] A10 — Import jadwal CSV dan laporan error belum ada. Nice-to-have.
+- [ ] A11 — Kenaikan kelas dan kelulusan bulk belum ada. Nice-to-have.
+
+Catatan review Dev A:
+
+- [ ] Perbaiki update guru ketika password dikosongkan. Data validasi masih dapat membawa `password => null` ke query update.
+- [ ] Perketat validasi jadwal: `user_id` harus role guru aktif, mapel harus termasuk assignment guru, dan kelas harus berasal dari tahun ajaran yang dipilih.
+- [ ] Tambahkan feature test CRUD, unique NIS/NISN/email, dan kasus overlap jadwal kelas/guru.
+
+#### Dev B — Sistem Absensi
+
+- [x] B1 — Buka sesi dari jadwal dan generate attendance default `alpha` untuk roster siswa aktif.
+- [ ] B2 — Parsial: tutup sesi manual sudah ada, tetapi auto-close saat jam selesai dan scheduler/cron belum ada.
+- [x] B3 — Integrasi kamera browser dengan `html5-qrcode` dan lookup pure NISN.
+- [x] B4 — Validasi NISN tidak ditemukan, siswa beda kelas/roster, sesi tertutup, dan scan ulang sudah ada.
+- [ ] B5 — Parsial: cooldown 3 detik dan feedback visual sudah ada; audio feedback serta unlock `AudioContext` belum ada.
+- [x] B6 — Fallback input manual NISN tersedia.
+- [ ] B7 — Parsial: indikator online/offline dan error koneksi tersedia; request timeout belum diterapkan.
+- [ ] B8 — Manual set status Sakit/Izin oleh guru belum ada.
+- [ ] B9 — Policy edit sampai H+3 dan lock guru setelah H+3 belum ada.
+- [ ] B10 — Parsial: tabel/model/log scan `alpha -> hadir` sudah ada, tetapi audit seluruh perubahan status menunggu B8/B9. Nice-to-have.
+
+Catatan review Dev B:
+
+- [ ] Batasi pembukaan sesi agar hanya untuk jadwal pada hari/tahun ajaran yang valid; endpoint sekarang masih bisa dipanggil langsung untuk jadwal hari lain.
+- [ ] Tambahkan pencegahan race scan pada level transaksi/locking dan feature test untuk semua kasus scanner.
+- [ ] Verifikasi scanner, izin kamera, cooldown, dan fallback manual langsung di HP melalui HTTPS/localhost yang didukung browser.
+
+#### Dev C — Auth, Dashboard, Laporan & Settings
+
+- [x] C1 — Login/logout dan role-based routing tersedia dari foundation.
+- [ ] C2 — Admin reset password guru belum ada.
+- [ ] C3 — Artisan command fallback reset password admin belum ada.
+- [ ] C4 — Parsial: dashboard guru menampilkan jadwal hari ini dan akses sesi, tetapi belum ada ringkasan kehadiran.
+- [ ] C5 — Parsial: dashboard admin menampilkan total siswa/guru/kelas/record, tetapi belum menampilkan persentase kehadiran dan masih bertuliskan placeholder.
+- [ ] C6 — Admin override attendance lintas guru/kelas belum ada.
+- [ ] C7 — Laporan, filter, dan export Excel belum ada.
+- [ ] C8 — Policy data privacy untuk foto dan NISN belum ada.
+- [ ] C9 — Chart detail belum ada. Nice-to-have.
+- [ ] C10 — Export PDF belum ada. Nice-to-have.
+- [ ] C11 — Admin emergency session belum ada. Nice-to-have.
+
+#### Quality Gate Branch `dev`
+
+- [x] Branch aktif `dev` dan seluruh branch pada screenshot sudah ter-merge.
+- [x] `php artisan route:list` berhasil dan mendaftarkan 62 route.
+- [x] `php artisan test` lulus: 3 test, 4 assertion. Coverage masih belum mewakili fitur bisnis.
+- [x] `npm run build` berhasil.
+- [ ] `php artisan migrate:status` belum dapat diverifikasi saat audit karena MySQL `127.0.0.1:3306` tidak menerima koneksi.
+- [ ] `php artisan migrate:fresh --seed` belum dijalankan dalam audit ini agar database lokal tidak terhapus tanpa konfirmasi.
+- [ ] `vendor/bin/pint --test` belum lulus; 9 file terdeteksi perlu formatting.
+- [ ] Smoke test end-to-end `login -> jadwal -> buka sesi -> scan -> edit -> export` belum bisa dinyatakan lulus karena edit attendance dan export belum tersedia.
+
+Kesimpulan checkpoint: track Dev A untuk Must-have hampir selesai. Jalur absensi baru sampai scanner dasar, sedangkan sebagian besar track Dev C belum dikerjakan. Branch `dev` belum memenuhi Checkpoint 1 dan belum siap di-merge ke `main`.
+
 ## 4. Strategi Branching
 
 ```
 main
- └── develop
+ └── dev
       ├── feature/setup-foundation      (Fase 0, sekali jalan bareng)
       ├── feature/a-tahun-ajaran
       ├── feature/a-kelas
@@ -111,16 +192,16 @@ main
       ├── feature/b-scanner
       ├── feature/c-auth
       ├── feature/c-dashboard-admin
-      ├── fix/<bug-singkat>             (bug ditemukan di develop)
+      ├── fix/<bug-singkat>             (bug ditemukan di dev)
       └── hotfix/<bug-singkat>          (bug kritis di main/production)
 ```
 
 | Branch | Dibuat dari | Fungsi | Siapa yang push langsung? |
 |--------|-------------|--------|----------------------------|
-| `main` | — | Kode production-ready, yang di-deploy ke sekolah | **Tidak ada.** Hanya lewat merge PR dari `develop` di checkpoint integrasi |
-| `develop` | `main` | Branch integrasi harian, tempat semua feature ketemu | **Tidak ada.** Hanya lewat merge PR dari `feature/*` |
-| `feature/<area>-<deskripsi>` | `develop` (paling baru) | Satu branch = satu fitur/task dari Task Board | Yang ngerjain fitur itu |
-| `fix/<deskripsi>` | `develop` | Perbaikan bug yang ketemu selama development (bukan urgent) | Siapapun yang nemuin/ditugasin |
+| `main` | — | Kode production-ready, yang di-deploy ke sekolah | **Tidak ada.** Hanya lewat merge PR dari `dev` di checkpoint integrasi |
+| `dev` | `main` | Branch integrasi harian, tempat semua feature ketemu | **Tidak ada.** Hanya lewat merge PR dari `feature/*` |
+| `feature/<area>-<deskripsi>` | `dev` (paling baru) | Satu branch = satu fitur/task dari Task Board | Yang ngerjain fitur itu |
+| `fix/<deskripsi>` | `dev` | Perbaikan bug yang ketemu selama development (bukan urgent) | Siapapun yang nemuin/ditugasin |
 | `hotfix/<deskripsi>` | `main` | Bug kritis di kode yang sudah kepakai/mendekati go-live | Siapapun, harus segera info tim |
 
 **Konvensi nama branch:** huruf kecil, pisah pakai `-`, prefix dev opsional kalau mau makin jelas (`feature/a-jadwal`, bukan `feature/Jadwal_Andi`).
@@ -137,41 +218,41 @@ docs: update PRD section data privasi
 
 ## 5. Alur Kerja per Fitur (step by step)
 
-1. `git checkout develop && git pull origin develop` — **selalu mulai dari develop terbaru**, jangan dari branch lama.
+1. `git checkout dev && git pull origin dev` — **selalu mulai dari dev terbaru**, jangan dari branch lama.
 2. `git checkout -b feature/b-scanner-validasi`
 3. Kerjain fiturnya. Commit kecil & sering (jangan 1 commit raksasa di akhir).
-4. Sebelum push final: `git pull origin develop --rebase` (atau merge) buat narik update terbaru dan resolve conflict di branch sendiri, **bukan di develop**.
+4. Sebelum push final: `git pull origin dev --rebase` (atau merge) buat narik update terbaru dan resolve conflict di branch sendiri, **bukan di dev**.
 5. Test manual sesuai checklist fitur (Section 11).
-6. `git push origin feature/b-scanner-validasi` → buka **Pull Request ke `develop`**.
+6. `git push origin feature/b-scanner-validasi` → buka **Pull Request ke `dev`**.
 7. Isi PR: deskripsi singkat, screenshot/video kalau ada UI, checklist testing yang sudah dilakukan.
 8. **Minta review ke 1 dev lain** (idealnya dev dari track lain yang datanya related — misal PR jadwal direview Dev B karena dia yang konsumsi jadwal itu).
-9. Reviewer approve → merge (rekomendasi **squash and merge** biar histori `develop` bersih) → hapus branch.
+9. Reviewer approve → merge (rekomendasi **squash and merge** biar histori `dev` bersih) → hapus branch.
 10. Kalau ada perubahan diminta reviewer, push commit baru ke branch yang sama (PR auto-update), gak perlu bikin PR baru.
 
 ---
 
 ## 6. Aturan Merge — Kapan Boleh, Kapan Enggak
 
-### Boleh merge `feature/*` → `develop` kapan saja, asalkan:
+### Boleh merge `feature/*` → `dev` kapan saja, asalkan:
 - ✅ Kode bisa di-build/run tanpa error di lokal
 - ✅ Migration jalan mulus di database bersih (`php artisan migrate:fresh --seed`)
 - ✅ Fitur sudah ditest manual sesuai checklist (Section 11) — bukan cuma "kelihatannya jalan"
 - ✅ Tidak ada `dd()`, `dump()`, `console.log` debug yang ketinggalan
-- ✅ Sudah di-rebase/merge dengan `develop` terbaru, tidak ada conflict tersisa
+- ✅ Sudah di-rebase/merge dengan `dev` terbaru, tidak ada conflict tersisa
 - ✅ Sudah di-review & di-approve minimal 1 dev lain
 - ✅ Kalau fitur itu Must-have dan ada bug diketahui, **ditulis eksplisit di deskripsi PR** — jangan disembunyiin, biar tim tahu status realnya
 
 **Jangan tunggu semua fitur "sempurna"** — merge duluan yang sudah jalan untuk kasus normal, lanjut edge case di PR/commit berikutnya. Ingat waktu cuma ~9 hari.
 
-### Boleh merge `develop` → `main` HANYA di checkpoint integrasi (lihat Section 8), dan setelah:
-- ✅ Semua fitur 🔴 Must-have di Task Board sudah masuk `develop`
+### Boleh merge `dev` → `main` HANYA di checkpoint integrasi (lihat Section 8), dan setelah:
+- ✅ Semua fitur 🔴 Must-have di Task Board sudah masuk `dev`
 - ✅ Smoke test bareng 3 dev: login admin & guru, jalanin flow absensi end-to-end (buka sesi → scan → edit → export), pastikan gak ada error fatal
 - ✅ Tidak ada migration yang saling konflik / merusak data seed
 - ✅ Untuk merge **final sebelum go-live**: harus lolos UAT (PRD Section 11) dulu
 
 ### Hotfix ke `main`:
-- Hanya untuk bug kritis yang ditemukan setelah `develop` sudah masuk `main` (mendekati/setelah go-live).
-- Setelah hotfix di-merge ke `main`, **wajib** merge balik ke `develop` juga supaya tidak hilang di iterasi berikutnya.
+- Hanya untuk bug kritis yang ditemukan setelah `dev` sudah masuk `main` (mendekati/setelah go-live).
+- Setelah hotfix di-merge ke `main`, **wajib** merge balik ke `dev` juga supaya tidak hilang di iterasi berikutnya.
 
 ---
 
@@ -181,7 +262,7 @@ Area rawan conflict yang butuh komunikasi ekstra sebelum ngerjain:
 
 | Resource | Aturan |
 |----------|--------|
-| **Migration files** | Jangan pernah edit migration file yang **sudah di-merge ke `develop`**. Kalau butuh kolom tambahan di tabel existing, bikin migration baru (`add_xxx_to_yyy_table`). Kalau masih dalam 1 PR yang belum merge, boleh edit langsung. |
+| **Migration files** | Jangan pernah edit migration file yang **sudah di-merge ke `dev`**. Kalau butuh kolom tambahan di tabel existing, bikin migration baru (`add_xxx_to_yyy_table`). Kalau masih dalam 1 PR yang belum merge, boleh edit langsung. |
 | **Route files** (`web.php`) | Tiap dev nambah route sendiri di grup masing-masing (comment per section: `// Dev A - Data Master`, dst) supaya minim baris yang sama di-edit 2 orang. |
 | **Seeder/Factory** | Perubahan besar ke seeder utama harus diumumkan di grup chat dulu — dev lain mungkin lagi bergantung ke data dummy yang ada. |
 | **Layout/komponen shared** (navbar, base Livewire component) | Hasil Fase 0, kalau butuh diubah setelah split, **diskusi dulu di grup**, jangan langsung ubah sepihak karena dipakai semua track. |
@@ -197,8 +278,8 @@ Selaras dengan `prd.md` Section 1.1 (MVP Scope) dan Section 11 (UAT & Rollout).
 
 | Fase | Fokus | Checkpoint |
 |------|-------|------------|
-| **Fase 0** (hari ini, setengah hari) | Setup bareng (Section 2): project init, semua migration, seeder dummy, auth skeleton, base layout | Merge `feature/setup-foundation` → `develop` |
-| **Fase 1** (hari 1–3) | Kerjain fitur 🔴 Must-have paralel per track (A1–A9, B1–B9, C1–C8) | **Checkpoint 1:** smoke test bareng, merge `develop` → `main` kalau flow inti (jadwal → sesi → scan → laporan Excel) sudah nyambung end-to-end |
+| **Fase 0** (hari ini, setengah hari) | Setup bareng (Section 2): project init, semua migration, seeder dummy, auth skeleton, base layout | Merge `feature/setup-foundation` → `dev` |
+| **Fase 1** (hari 1–3) | Kerjain fitur 🔴 Must-have paralel per track (A1–A9, B1–B9, C1–C8) | **Checkpoint 1:** smoke test bareng, merge `dev` → `main` kalau flow inti (jadwal → sesi → scan → laporan Excel) sudah nyambung end-to-end |
 | **Fase 2** (hari 4–6) | Beresin sisa Must-have + mulai Nice-to-have kalau on-track (import CSV, kenaikan kelas, chart, PDF) | **Checkpoint 2:** regresi test semua fitur Must-have, merge lagi ke `main` |
 | **Fase 3** (hari 7–8) | Bugfix, polish UI/UX (Section 7 PRD: mobile-first, feedback scan), testing menyeluruh | **Checkpoint 3:** freeze fitur baru, fokus stabilitas |
 | **Fase 4** (hari 9) | **UAT bareng guru asli + training singkat** (PRD Section 11), fix temuan UAT prioritas tinggi, final merge ke `main` | **Go-live** |
@@ -225,8 +306,10 @@ Selaras dengan `prd.md` Section 1.1 (MVP Scope) dan Section 11 (UAT & Rollout).
 
 **Umum:**
 - Tidak ada error di console/log saat flow normal
-- PR sudah direview & di-merge ke `develop`
-
+- PR sudah direview & di-merge ke `dev`
+@foreach ($collection as $item) 
+    
+@endforeach
 ---
 
 ## 10. Komunikasi & Sync Harian
