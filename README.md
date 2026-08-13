@@ -23,7 +23,10 @@ cp .env.example .env # lewati bila .env sudah ada
 docker compose up --build
 ```
 
+Untuk startup berikutnya cukup jalankan `docker compose up -d`.
+
 Aplikasi tersedia di <http://localhost:8000> dan Vite HMR di port `5173`.
+Adminer tersedia di <http://localhost:8081>.
 Migration dijalankan otomatis setelah MySQL sehat. Data contoh tetap eksplisit:
 
 ```bash
@@ -44,6 +47,14 @@ database dan dependency volume, jadi gunakan hanya bila memang ingin reset total
 Port MySQL tidak dipublikasikan ke host agar tidak berbenturan dengan instalasi
 lokal. Gunakan `docker compose exec db mysql -uocular -p db_ocular` untuk membuka
 client MySQL di dalam stack.
+
+Login Adminer development:
+
+- System: `MySQL`
+- Server: `db`
+- Username: `ocular`
+- Password: `ocular`
+- Database: `db_ocular`
 Credential database development Docker dapat dioverride lewat variabel
 `DOCKER_DB_DATABASE`, `DOCKER_DB_USERNAME`, `DOCKER_DB_PASSWORD`, dan
 `DOCKER_DB_ROOT_PASSWORD` tanpa mengubah konfigurasi database host di `.env`.

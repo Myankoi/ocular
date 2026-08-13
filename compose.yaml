@@ -8,7 +8,13 @@ services:
       args:
         USER_ID: ${USER_ID:-1000}
         GROUP_ID: ${GROUP_ID:-1000}
-    command: php artisan serve --host=0.0.0.0 --port=8000
+    command:
+      - php
+      - -S
+      - 0.0.0.0:8000
+      - -t
+      - public
+      - docker/php/server.php
     environment:
       DB_CONNECTION: mysql
       DB_HOST: db
@@ -79,6 +85,17 @@ services:
       timeout: 5s
       retries: 20
       start_period: 20s
+
+  adminer:
+    image: adminer:standalone
+    restart: unless-stopped
+    environment:
+      ADMINER_DEFAULT_SERVER: db
+    ports:
+      - "${ADMINER_PORT:-8081}:8080"
+    depends_on:
+      db:
+        condition: service_healthy
 
 volumes:
   mysql_data:
