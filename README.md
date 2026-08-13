@@ -26,7 +26,7 @@ docker compose up --build
 Untuk startup berikutnya cukup jalankan `docker compose up -d`.
 
 Aplikasi tersedia di <http://localhost:8000> dan Vite HMR di port `5173`.
-Adminer tersedia di <http://localhost:8081>.
+Adminer tersedia di <http://localhost:8090>.
 Migration dijalankan otomatis setelah MySQL sehat. Data contoh tetap eksplisit:
 
 ```bash
