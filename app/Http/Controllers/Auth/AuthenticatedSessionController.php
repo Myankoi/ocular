@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Models\User;
 use Illuminate\View\View;
 
 class AuthenticatedSessionController extends Controller
@@ -22,11 +23,18 @@ class AuthenticatedSessionController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $credentials = $request->validate([
-            'email' => ['required', 'email'],
+            'email' => ['required', 'string', 'max:255'],
             'password' => ['required', 'string'],
         ]);
 
-        if (! Auth::attempt([...$credentials, 'is_active' => true], $request->boolean('remember'))) {
+        $user = User::query()
+            ->where(function ($query) use ($credentials): void {
+                $query->where('email', $credentials['email'])->orWhere('nip', $credentials['email']);
+            })
+            ->where('is_active', true)
+            ->first();
+
+        if (! $user || ! Auth::attempt(['email' => $user->email, 'password' => $credentials['password'], 'is_active' => true], $request->boolean('remember'))) {
             return back()
                 ->withErrors(['email' => 'Email atau password tidak sesuai.'])
                 ->onlyInput('email');
