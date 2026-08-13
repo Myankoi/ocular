@@ -1,0 +1,86 @@
+name: ocular
+
+services:
+  app:
+    build:
+      context: .
+      target: development
+      args:
+        USER_ID: ${USER_ID:-1000}
+        GROUP_ID: ${GROUP_ID:-1000}
+    command: php artisan serve --host=0.0.0.0 --port=8000
+    environment:
+      DB_CONNECTION: mysql
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_DATABASE: ${DOCKER_DB_DATABASE:-db_ocular}
+      DB_USERNAME: ${DOCKER_DB_USERNAME:-ocular}
+      DB_PASSWORD: ${DOCKER_DB_PASSWORD:-ocular}
+      QUEUE_CONNECTION: sync
+    ports:
+      - "${APP_PORT:-8000}:8000"
+    volumes:
+      - .:/var/www/html:z
+      - vendor:/var/www/html/vendor
+    depends_on:
+      db:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+
+  vite:
+    image: node:22-alpine
+    working_dir: /var/www/html
+    command: sh -c "npm ci --ignore-scripts && npm run dev -- --host 0.0.0.0"
+    environment:
+      CHOKIDAR_USEPOLLING: "true"
+    ports:
+      - "${VITE_PORT:-5173}:5173"
+    volumes:
+      - .:/var/www/html:z
+      - node_modules:/var/www/html/node_modules
+
+  migrate:
+    build:
+      context: .
+      target: development
+      args:
+        USER_ID: ${USER_ID:-1000}
+        GROUP_ID: ${GROUP_ID:-1000}
+    command: php artisan migrate --force
+    environment:
+      DB_CONNECTION: mysql
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_DATABASE: ${DOCKER_DB_DATABASE:-db_ocular}
+      DB_USERNAME: ${DOCKER_DB_USERNAME:-ocular}
+      DB_PASSWORD: ${DOCKER_DB_PASSWORD:-ocular}
+      QUEUE_CONNECTION: sync
+    volumes:
+      - .:/var/www/html:z
+      - vendor:/var/www/html/vendor
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: "no"
+
+  db:
+    image: mysql:8.4
+    environment:
+      MYSQL_DATABASE: ${DOCKER_DB_DATABASE:-db_ocular}
+      MYSQL_USER: ${DOCKER_DB_USERNAME:-ocular}
+      MYSQL_PASSWORD: ${DOCKER_DB_PASSWORD:-ocular}
+      MYSQL_ROOT_PASSWORD: ${DOCKER_DB_ROOT_PASSWORD:-ocular-root}
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-p${DOCKER_DB_ROOT_PASSWORD:-ocular-root}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 20s
+
+volumes:
+  mysql_data:
+  node_modules:
+  vendor:

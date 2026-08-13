@@ -7,6 +7,73 @@
 <a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
 </p>
 
+## Menjalankan dengan Docker
+
+Project ini menyediakan stack development dan production berbasis PHP 8.4,
+MySQL 8.4, Node 22, dan Nginx.
+
+### Development
+
+Pastikan `.env` tersedia. Compose akan mengoverride koneksi database agar memakai
+service MySQL bernama `db`, jadi `DB_HOST=127.0.0.1` di `.env` lokal tidak perlu
+diubah.
+
+```bash
+cp .env.example .env # lewati bila .env sudah ada
+docker compose up --build
+```
+
+Aplikasi tersedia di <http://localhost:8000> dan Vite HMR di port `5173`.
+Migration dijalankan otomatis setelah MySQL sehat. Data contoh tetap eksplisit:
+
+```bash
+docker compose exec app php artisan db:seed
+```
+
+Perintah operasional yang umum:
+
+```bash
+docker compose exec app php artisan test
+docker compose exec app php artisan migrate:status
+docker compose logs -f app vite db
+docker compose down
+```
+
+Database disimpan dalam named volume. `docker compose down -v` turut menghapus
+database dan dependency volume, jadi gunakan hanya bila memang ingin reset total.
+Port MySQL tidak dipublikasikan ke host agar tidak berbenturan dengan instalasi
+lokal. Gunakan `docker compose exec db mysql -uocular -p db_ocular` untuk membuka
+client MySQL di dalam stack.
+Credential database development Docker dapat dioverride lewat variabel
+`DOCKER_DB_DATABASE`, `DOCKER_DB_USERNAME`, `DOCKER_DB_PASSWORD`, dan
+`DOCKER_DB_ROOT_PASSWORD` tanpa mengubah konfigurasi database host di `.env`.
+
+### Production
+
+Buat environment production dan isi secret yang kuat. Samakan nilai `MYSQL_*`
+dengan pasangan `DB_*` di file tersebut. `APP_KEY` dapat dibuat
+dengan `docker compose exec app php artisan key:generate --show` dari development
+stack, lalu salin hasilnya ke file production.
+
+```bash
+cp .env.production.example .env.production
+chmod 600 .env.production
+docker compose -f compose.prod.yaml up -d --build
+```
+
+Nginx tersedia secara default hanya di `127.0.0.1:8080`, untuk diteruskan oleh
+reverse proxy yang menangani domain dan TLS. Migration berjalan otomatis dan
+seeder tidak pernah dijalankan saat startup.
+
+```bash
+docker compose -f compose.prod.yaml ps
+docker compose -f compose.prod.yaml logs -f app web db migrate
+docker compose -f compose.prod.yaml exec app php artisan about
+```
+
+Jangan commit `.env` atau `.env.production`. Queue memakai mode `sync`; tambahkan
+worker terpisah ketika aplikasi mulai mengirim job asynchronous.
+
 ## About Laravel
 
 Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
