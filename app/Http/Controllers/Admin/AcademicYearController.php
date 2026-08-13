@@ -12,13 +12,17 @@ use Illuminate\View\View;
 
 class AcademicYearController extends Controller
 {
-    public function index(): View
+    public function index(Request $request): View
     {
+        $search = trim($request->string('q')->toString());
         return view('admin.academic-years.index', [
             'academicYears' => AcademicYear::query()
+                ->when($search !== '', fn ($query) => $query->where('name', 'like', "%{$search}%"))
                 ->orderByDesc('is_active')
                 ->orderByDesc('start_date')
-                ->paginate(10),
+                ->paginate(10)
+                ->withQueryString(),
+            'search' => $search,
         ]);
     }
 

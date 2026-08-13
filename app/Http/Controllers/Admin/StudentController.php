@@ -8,6 +8,7 @@ use App\Models\Student;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\View\View;
 
 class StudentController extends Controller
@@ -88,6 +89,72 @@ class StudentController extends Controller
         return redirect()
             ->route('admin.students.index')
             ->with('success', 'Siswa berhasil dihapus.');
+    }
+
+    public function import(Request $request): RedirectResponse
+    {
+        $request->validate(['file' => ['required', 'file', 'mimes:csv,txt', 'max:2048']]);
+        $file = $request->file('file');
+        $handle = fopen($file->getRealPath(), 'r');
+        $headers = array_map(fn ($header) => strtolower(trim((string) $header)), fgetcsv($handle) ?: []);
+        $required = ['nis', 'nisn', 'name', 'class_id'];
+        $missing = array_diff($required, $headers);
+
+        if ($missing) {
+            fclose($handle);
+            return back()->withErrors(['file' => 'Header CSV wajib: '.implode(', ', $required)]);
+        }
+
+        $success = 0;
+        $errors = [];
+        $rowNumber = 1;
+
+        while (($row = fgetcsv($handle)) !== false) {
+            $rowNumber++;
+            if (count(array_filter($row, fn ($value) => trim((string) $value) !== '')) === 0) continue;
+            $data = array_combine($headers, array_pad($row, count($headers), null));
+            $validator = Validator::make($data, [
+                'nis' => ['required', 'string', 'max:255', 'unique:students,nis'],
+                'nisn' => ['required', 'string', 'max:255', 'unique:students,nisn'],
+                'name' => ['required', 'string', 'max:255'],
+                'class_id' => ['required', 'integer', 'exists:classes,id'],
+                'is_active' => ['nullable', 'boolean'],
+            ]);
+
+            if ($validator->fails()) {
+                $errors[] = "Baris {$rowNumber}: ".implode(' ', $validator->errors()->all());
+                continue;
+            }
+
+            Student::create([
+                'nis' => $data['nis'], 'nisn' => $data['nisn'], 'name' => $data['name'],
+                'class_id' => $data['class_id'], 'is_active' => filter_var($data['is_active'] ?? true, FILTER_VALIDATE_BOOLEAN),
+            ]);
+            $success++;
+        }
+
+        fclose($handle);
+        $message = "Import selesai: {$success} baris berhasil.";
+        if ($errors) $message .= ' '.count($errors).' baris gagal. '.implode(' | ', array_slice($errors, 0, 3));
+
+        return redirect()->route('admin.students.index')->with($errors ? 'warning' : 'success', $message);
+    }
+
+    public function promotion(): View
+    {
+        return view('admin.students.promotion', ['classes' => $this->classOptions()]);
+    }
+
+    public function promote(Request $request): RedirectResponse
+    {
+        $data = $request->validate([
+            'from_class_id' => ['required', 'different:to_class_id', 'exists:classes,id'],
+            'to_class_id' => ['required', 'exists:classes,id'],
+        ]);
+
+        $count = Student::where('class_id', $data['from_class_id'])->where('is_active', true)->update(['class_id' => $data['to_class_id']]);
+
+        return redirect()->route('admin.students.promotion')->with('success', "{$count} siswa berhasil dipindahkan.");
     }
 
     private function validatedData(Request $request, ?Student $student = null): array

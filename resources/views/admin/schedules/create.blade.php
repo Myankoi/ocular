@@ -1,12 +1,15 @@
 <x-layouts.app title="Tambah Jadwal - Ocular">
-    <h1 class="mb-6 text-2xl font-semibold">Tambah Jadwal</h1>
-
-    <form method="POST" action="{{ route('admin.schedules.store') }}" class="max-w-xl space-y-4">
-        @csrf
-
-        @include('admin.schedules.form', ['schedule' => null])
-
-        <button class="rounded-md bg-slate-900 px-4 py-2 text-white">Simpan</button>
-        <a href="{{ route('admin.schedules.index') }}" class="ml-2 text-sm underline">Batal</a>
-    </form>
+    <x-ui.page eyebrow="Data akademik" title="Tambah jadwal" description="Isi detail jadwal mengajar untuk memasukkannya ke peta jadwal.">
+        <x-slot:actions><x-ui.link-button :href="route('admin.schedules.index')" variant="muted">Kembali ke jadwal</x-ui.link-button></x-slot:actions>
+        <x-ui.card class="max-w-2xl border border-ocular-teal/15">
+            <form method="POST" action="{{ route('admin.schedules.store') }}" class="space-y-5">
+                @csrf
+                @include('admin.schedules.form', ['schedule' => null])
+                <div class="flex flex-col-reverse gap-2 border-t border-ocular-teal/10 pt-4 sm:flex-row sm:justify-end">
+                    <x-ui.link-button :href="route('admin.schedules.index')" variant="muted">Batal</x-ui.link-button>
+                    <x-ui.button variant="teal">Simpan jadwal</x-ui.button>
+                </div>
+            </form>
+        </x-ui.card>
+    </x-ui.page>
 </x-layouts.app>

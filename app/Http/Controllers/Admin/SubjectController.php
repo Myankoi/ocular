@@ -11,13 +11,19 @@ use Illuminate\View\View;
 
 class SubjectController extends Controller
 {
-    public function index(): View
+    public function index(Request $request): View
     {
+        $search = trim($request->string('q')->toString());
         return view('admin.subjects.index', [
             'subjects' => Subject::query()
                 ->withCount(['teachers', 'schedules'])
+                ->when($search !== '', fn ($query) => $query->where(function ($query) use ($search): void {
+                    $query->where('name', 'like', "%{$search}%")->orWhere('code', 'like', "%{$search}%");
+                }))
                 ->orderBy('name')
-                ->paginate(10),
+                ->paginate(10)
+                ->withQueryString(),
+            'search' => $search,
         ]);
     }
 

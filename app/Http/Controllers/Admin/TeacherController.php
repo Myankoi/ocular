@@ -13,14 +13,36 @@ use Illuminate\View\View;
 
 class TeacherController extends Controller
 {
-    public function index(): View
+    public function resetPassword(Request $request, User $teacher): RedirectResponse
     {
+        abort_unless($teacher->role === 'guru', 404);
+
+        $data = $request->validate([
+            'password' => ['required', 'string', 'min:8', 'confirmed'],
+        ]);
+
+        $teacher->update(['password' => Hash::make($data['password'])]);
+
+        return back()->with('success', 'Password guru berhasil direset.');
+    }
+
+    public function index(Request $request): View
+    {
+        $search = trim($request->string('q')->toString());
+
         return view('admin.teachers.index', [
             'teachers' => User::query()
                 ->where('role', 'guru')
                 ->with('subjects')
+                ->when($search !== '', fn ($query) => $query->where(function ($query) use ($search): void {
+                    $query->where('name', 'like', "%{$search}%")
+                        ->orWhere('email', 'like', "%{$search}%")
+                        ->orWhere('nip', 'like', "%{$search}%");
+                }))
                 ->orderBy('name')
-                ->paginate(10),
+                ->paginate(10)
+                ->withQueryString(),
+            'search' => $search,
         ]);
     }
 
@@ -70,12 +92,16 @@ class TeacherController extends Controller
         $subjectIds = $data['subject_ids'] ?? [];
 
         unset($data['subject_ids']);
+        unset($data['password']);
 
         $teacher->update([
             ...$data,
             'is_active' => $request->boolean('is_active'),
-            ...($data['password'] ? ['password' => Hash::make($data['password'])] : []),
         ]);
+
+        if ($request->filled('password')) {
+            $teacher->update(['password' => Hash::make($request->string('password')->toString())]);
+        }
 
         $teacher->subjects()->sync($subjectIds);
 

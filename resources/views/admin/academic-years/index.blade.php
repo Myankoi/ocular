@@ -1,61 +1,9 @@
 <x-layouts.app title="Tahun Ajaran - Ocular">
-    <div class="space-y-4">
-        <div class="flex items-center justify-between">
-            <h1 class="text-2xl font-semibold">Tahun Ajaran</h1>
-            <a href="{{ route('admin.academic-years.create') }}" class="rounded-md bg-slate-900 px-3 py-2 text-sm text-white">
-                Tambah
-            </a>
-        </div>
-
-        @if (session('success'))
-            <div class="rounded-md bg-green-50 p-3 text-sm text-green-700">{{ session('success') }}</div>
-        @endif
-
-        @error('delete')
-            <div class="rounded-md bg-red-50 p-3 text-sm text-red-700">{{ $message }}</div>
-        @enderror
-
-        <div class="overflow-hidden rounded-lg border border-slate-200 bg-white">
-            <table class="w-full text-left text-sm">
-                <thead class="bg-slate-100">
-                    <tr>
-                        <th class="px-4 py-3">Nama</th>
-                        <th class="px-4 py-3">Semester</th>
-                        <th class="px-4 py-3">Tanggal</th>
-                        <th class="px-4 py-3">Status</th>
-                        <th class="px-4 py-3">Aksi</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-slate-200">
-                    @foreach ($academicYears as $academicYear)
-                        <tr>
-                            <td class="px-4 py-3">{{ $academicYear->name }}</td>
-                            <td class="px-4 py-3">{{ $academicYear->semester === 1 ? 'Ganjil' : 'Genap' }}</td>
-                            <td class="px-4 py-3">
-                                {{ $academicYear->start_date->format('d/m/Y') }} - {{ $academicYear->end_date->format('d/m/Y') }}
-                            </td>
-                            <td class="px-4 py-3">{{ $academicYear->is_active ? 'Aktif' : 'Nonaktif' }}</td>
-                            <td class="px-4 py-3">
-                                <div class="flex gap-2">
-                                    <a href="{{ route('admin.academic-years.edit', $academicYear) }}" class="text-slate-900 underline">
-                                        Edit
-                                    </a>
-
-                                    <form method="POST" action="{{ route('admin.academic-years.destroy', $academicYear) }}">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="text-red-600 underline" onclick="return confirm('Hapus tahun ajaran ini?')">
-                                            Hapus
-                                        </button>
-                                    </form>
-                                </div>
-                            </td>
-                        </tr>
-                    @endforeach
-                </tbody>
-            </table>
-        </div>
-
-        {{ $academicYears->links() }}
-    </div>
+    <x-ui.page eyebrow="Pengaturan akademik" title="Tahun ajaran" description="Atur periode akademik yang digunakan oleh kelas dan jadwal.">
+        <x-slot:actions><x-ui.link-button :href="route('admin.academic-years.create')">Tambah tahun ajaran</x-ui.link-button></x-slot:actions>
+        <x-ui.flash :message="session('success')" />
+        @if ($errors->any())<x-ui.flash type="error" :message="$errors->first()" />@endif
+        <x-ui.card padding="p-4" class="border border-ocular-teal/15"><form method="GET" class="flex items-center gap-2"><label for="year-search" class="sr-only">Cari tahun ajaran</label><div class="relative flex-1"><span class="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-ocular-accent">⌕</span><input id="year-search" name="q" value="{{ $search }}" placeholder="Cari tahun ajaran..." class="min-h-12 w-full border border-slate-300 pl-10 pr-4 text-sm outline-none focus:border-ocular-teal focus:ring-2 focus:ring-ocular-teal/20"></div><x-ui.button variant="teal">Cari</x-ui.button>@if ($search !== '')<x-ui.link-button :href="route('admin.academic-years.index')" variant="muted">Reset</x-ui.link-button>@endif</form></x-ui.card>
+        <x-ui.card padding="p-0" class="overflow-hidden border border-slate-200"><div class="border-b border-slate-200 px-4 py-4 sm:px-5"><h2 class="text-sm font-black uppercase tracking-widest text-ocular-teal">Periode akademik</h2><p class="mt-1 text-xs text-ocular-copy/60">{{ $academicYears->total() }} periode</p></div><div class="hidden overflow-x-auto md:block"><table class="w-full min-w-[700px] text-left text-sm"><thead class="bg-ocular-surface text-[10px] uppercase tracking-widest text-ocular-accent"><tr><th class="px-5 py-3">Nama</th><th class="px-5 py-3">Semester</th><th class="px-5 py-3">Periode</th><th class="px-5 py-3">Status</th><th class="px-5 py-3">Aksi</th></tr></thead><tbody class="divide-y divide-slate-100">@forelse ($academicYears as $academicYear)<tr class="hover:bg-ocular-surface/60"><td class="px-5 py-3 font-semibold text-ocular-teal">{{ $academicYear->name }}</td><td class="px-5 py-3">{{ $academicYear->semester === 1 ? 'Ganjil' : 'Genap' }}</td><td class="px-5 py-3 font-mono text-xs">{{ $academicYear->start_date->format('d/m/Y') }} – {{ $academicYear->end_date->format('d/m/Y') }}</td><td class="px-5 py-3"><x-ui.status-badge :status="$academicYear->is_active ? 'open' : 'closed'" :label="$academicYear->is_active ? 'Aktif' : 'Nonaktif'" /></td><td class="px-5 py-3"><div class="flex gap-3"><a href="{{ route('admin.academic-years.edit', $academicYear) }}" class="text-xs font-bold text-ocular-teal underline">Edit</a><form method="POST" action="{{ route('admin.academic-years.destroy', $academicYear) }}">@csrf @method('DELETE')<button class="text-xs font-bold text-rose-600 underline" onclick="return confirm('Hapus tahun ajaran ini?')">Hapus</button></form></div></td></tr>@empty<tr><td colspan="5" class="px-5 py-12 text-center text-sm text-ocular-copy/60">Belum ada tahun ajaran.</td></tr>@endforelse</tbody></table></div><div class="divide-y divide-slate-100 md:hidden">@forelse ($academicYears as $academicYear)<article class="space-y-3 p-4"><div class="flex items-start justify-between gap-3"><div><h3 class="font-semibold text-ocular-teal">{{ $academicYear->name }}</h3><p class="mt-1 text-xs text-ocular-copy/60">{{ $academicYear->semester === 1 ? 'Ganjil' : 'Genap' }}</p></div><x-ui.status-badge :status="$academicYear->is_active ? 'open' : 'closed'" :label="$academicYear->is_active ? 'Aktif' : 'Nonaktif'" /></div><p class="font-mono text-xs text-ocular-copy/70">{{ $academicYear->start_date->format('d/m/Y') }} – {{ $academicYear->end_date->format('d/m/Y') }}</p><div class="flex gap-3 border-t border-slate-100 pt-3"><a href="{{ route('admin.academic-years.edit', $academicYear) }}" class="text-xs font-bold text-ocular-teal underline">Edit</a><form method="POST" action="{{ route('admin.academic-years.destroy', $academicYear) }}">@csrf @method('DELETE')<button class="text-xs font-bold text-rose-600 underline" onclick="return confirm('Hapus tahun ajaran ini?')">Hapus</button></form></div></article>@empty<p class="px-4 py-12 text-center text-sm text-ocular-copy/60">Belum ada tahun ajaran.</p>@endforelse</div><div class="px-4 pb-4 sm:px-5"><x-ui.pagination :paginator="$academicYears" /></div></x-ui.card>
+    </x-ui.page>
 </x-layouts.app>

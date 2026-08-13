@@ -12,14 +12,18 @@ use Illuminate\View\View;
 
 class SchoolClassController extends Controller
 {
-    public function index(): View
+    public function index(Request $request): View
     {
+        $search = trim($request->string('q')->toString());
         return view('admin.classes.index', [
             'classes' => SchoolClass::query()
                 ->with('academicYear')
+                ->when($search !== '', fn ($query) => $query->where('name', 'like', "%{$search}%"))
                 ->orderBy('grade_level')
                 ->orderBy('name')
-                ->paginate(10),
+                ->paginate(10)
+                ->withQueryString(),
+            'search' => $search,
         ]);
     }
 
