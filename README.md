@@ -28,6 +28,7 @@ Untuk startup berikutnya cukup jalankan `docker compose up -d`.
 Aplikasi tersedia di <http://localhost:8000> dan Vite HMR di port `5173`.
 Adminer tersedia di <http://localhost:8090>.
 Migration dijalankan otomatis setelah MySQL sehat. Data contoh tetap eksplisit:
+Scheduler development juga aktif untuk menutup sesi otomatis setiap menit.
 
 ```bash
 docker compose exec app php artisan db:seed

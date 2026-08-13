@@ -46,6 +46,31 @@ services:
       - .:/var/www/html:z
       - node_modules:/var/www/html/node_modules
 
+  scheduler:
+    build:
+      context: .
+      target: development
+      args:
+        USER_ID: ${USER_ID:-1000}
+        GROUP_ID: ${GROUP_ID:-1000}
+    command: sh -c "while true; do php artisan schedule:run --no-interaction; sleep 60; done"
+    environment:
+      DB_CONNECTION: mysql
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_DATABASE: ${DOCKER_DB_DATABASE:-db_ocular}
+      DB_USERNAME: ${DOCKER_DB_USERNAME:-ocular}
+      DB_PASSWORD: ${DOCKER_DB_PASSWORD:-ocular}
+      QUEUE_CONNECTION: sync
+    volumes:
+      - .:/var/www/html:z
+      - vendor:/var/www/html/vendor
+    depends_on:
+      db:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+
   migrate:
     build:
       context: .
