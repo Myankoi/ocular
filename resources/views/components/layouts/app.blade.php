@@ -19,14 +19,14 @@
             $navigation = $isAdmin
                 ? [
                     ['label' => 'Dashboard', 'route' => 'admin.dashboard', 'active' => 'admin.dashboard', 'icon' => 'home'],
-                    ['label' => 'Attendance Logs', 'route' => 'admin.attendances.index', 'active' => 'admin.attendances.*', 'icon' => 'clipboard-list'],
-                    ['label' => 'Teachers', 'route' => 'admin.teachers.index', 'active' => 'admin.teachers.*', 'icon' => 'graduation-cap'],
-                    ['label' => 'Students', 'route' => 'admin.students.index', 'active' => 'admin.students.*', 'icon' => 'users-round'],
+                    ['label' => 'Rekap Absensi', 'route' => 'admin.attendances.index', 'active' => 'admin.attendances.*', 'icon' => 'clipboard-list'],
+                    ['label' => 'Guru', 'route' => 'admin.teachers.index', 'active' => 'admin.teachers.*', 'icon' => 'graduation-cap'],
+                    ['label' => 'Siswa', 'route' => 'admin.students.index', 'active' => 'admin.students.*', 'icon' => 'users-round'],
                     ['label' => 'Import Data', 'route' => 'admin.imports.create', 'active' => 'admin.imports.*', 'icon' => 'upload'],
-                    ['label' => 'Classes', 'route' => 'admin.classes.index', 'active' => 'admin.classes.*', 'icon' => 'school'],
-                    ['label' => 'Subjects', 'route' => 'admin.subjects.index', 'active' => 'admin.subjects.*', 'icon' => 'book-open'],
-                    ['label' => 'Academic Years', 'route' => 'admin.academic-years.index', 'active' => 'admin.academic-years.*', 'icon' => 'calendar-days'],
-                    ['label' => 'Schedules', 'route' => 'admin.schedules.index', 'active' => 'admin.schedules.*', 'icon' => 'calendar-clock'],
+                    ['label' => 'Kelas', 'route' => 'admin.classes.index', 'active' => 'admin.classes.*', 'icon' => 'school'],
+                    ['label' => 'Mata Pelajaran', 'route' => 'admin.subjects.index', 'active' => 'admin.subjects.*', 'icon' => 'book-open'],
+                    ['label' => 'Tahun Ajaran', 'route' => 'admin.academic-years.index', 'active' => 'admin.academic-years.*', 'icon' => 'calendar-days'],
+                    ['label' => 'Jadwal', 'route' => 'admin.schedules.index', 'active' => 'admin.schedules.*', 'icon' => 'calendar-clock'],
                 ]
                 : [
                     ['label' => 'Dashboard', 'route' => 'guru.dashboard', 'active' => 'guru.dashboard', 'icon' => 'home'],
@@ -45,11 +45,7 @@
                             <img src="{{ asset('images/ocular-mark.png') }}" alt="" class="ocular-sidebar-logo h-10 w-10 shrink-0 object-contain">
                             <span class="ocular-sidebar-wordmark text-4xl font-black leading-none tracking-normal">CULAR</span>
                         </a>
-                        @if ($isAdmin)
-                            <p class="mt-1 font-mono text-[9px] font-bold uppercase tracking-[0.2em] text-ocular-orange">Admin Hub</p>
-                        @endif
                     </div>
-                    <p class="mt-6 font-mono text-[9px] font-bold uppercase tracking-[0.18em] text-white/35">SMKN 24 JAKARTA</p>
                 </div>
                 <nav class="flex-1 overflow-y-auto py-6">
                     @foreach ($navigation as $item)
@@ -79,7 +75,7 @@
                         </div>
                         <form method="POST" action="{{ route('logout') }}">
                             @csrf
-                            <button title="Logout" class="grid size-9 place-items-center border border-white/15 text-white/60 transition hover:border-ocular-orange hover:text-ocular-orange"><i data-lucide="log-out" class="size-4"></i></button>
+                            <button title="Keluar" class="grid size-9 place-items-center border border-red-400/30 bg-red-500/10 text-red-200 transition hover:border-red-300 hover:bg-red-500/20 hover:text-white"><i data-lucide="log-out" class="size-4"></i></button>
                         </form>
                     </div>
                 </div>
@@ -99,9 +95,6 @@
                                                 <img src="{{ asset('images/ocular-mark.png') }}" alt="" class="ocular-sidebar-logo h-10 w-10 shrink-0 object-contain">
                                                 <span class="ocular-sidebar-wordmark text-4xl font-black leading-none tracking-normal">CULAR</span>
                                             </a>
-                                            @if ($isAdmin)
-                                                <p class="mt-1 font-mono text-[9px] font-bold uppercase tracking-[0.2em] text-ocular-orange">Admin Hub</p>
-                                            @endif
                                         </div>
                                         <button type="button" class="grid size-10 place-items-center border border-white/15 text-white/70 hover:text-white" aria-label="Tutup navigasi" onclick="this.closest('details').removeAttribute('open')"><i data-lucide="x" class="size-5"></i></button>
                                     </div>
@@ -128,7 +121,7 @@
                                             </div>
                                             <form method="POST" action="{{ route('logout') }}">
                                                 @csrf
-                                                <button title="Logout" class="grid size-9 place-items-center border border-white/15 text-white/60 hover:border-ocular-orange hover:text-ocular-orange"><i data-lucide="log-out" class="size-4"></i></button>
+                                                <button title="Keluar" class="grid size-9 place-items-center border border-red-400/30 bg-red-500/10 text-red-200 hover:border-red-300 hover:bg-red-500/20 hover:text-white"><i data-lucide="log-out" class="size-4"></i></button>
                                             </form>
                                         </div>
                                     </div>

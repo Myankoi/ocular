@@ -1,5 +1,5 @@
 <x-layouts.app title="Edit Guru - Ocular">
-    <x-ui.page eyebrow="Teachers" title="Edit guru" description="Perbarui profil guru, status akun, dan mata pelajaran yang diampu.">
+    <x-ui.page eyebrow="Data master" title="Edit guru">
         <x-ui.card class="max-w-2xl border border-ocular-teal/15">
             <form method="POST" action="{{ route('admin.teachers.update', $teacher) }}" class="space-y-5">
                 @csrf

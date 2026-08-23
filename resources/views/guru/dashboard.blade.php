@@ -1,5 +1,5 @@
 <x-layouts.app title="Guru Dashboard - Ocular">
-    <x-ui.page class="-mt-2 space-y-7 lg:mt-0" eyebrow="Dashboard Guru" title="Jadwal hari ini" description="Kelola sesi absensi kelas yang Anda ampu.">
+    <x-ui.page class="-mt-2 space-y-7 lg:mt-0" eyebrow="Dashboard Guru" title="Jadwal hari ini">
         <x-ui.flash :message="session('success')" />
         @if ($errors->any())
             <x-ui.flash type="error" :message="$errors->first()" />
@@ -66,7 +66,7 @@
                 @empty
                     <div class="border-2 border-dashed border-ocular-accent/20 px-5 py-10 text-center">
                         <p class="text-[10px] font-bold uppercase tracking-widest text-ocular-accent">Tidak ada jadwal hari ini</p>
-                        <p class="mt-2 text-sm text-ocular-copy/60">Jadwal aktif dari admin akan muncul di sini.</p>
+                        <p class="mt-2 text-sm text-ocular-copy/60">Tidak ada sesi.</p>
                     </div>
                 @endforelse
             </div>

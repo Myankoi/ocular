@@ -1,5 +1,5 @@
 <x-layouts.app title="Siswa - Ocular">
-    <x-ui.page eyebrow="Data master" title="Siswa" description="Kelola data siswa, kelas, status aktif, dan import CSV.">
+    <x-ui.page eyebrow="Data master" title="Siswa">
         <x-slot:actions>
             <x-ui.link-button :href="route('admin.imports.create')" variant="teal">Import data</x-ui.link-button>
             <x-ui.link-button :href="route('admin.students.promotion')" variant="outline">Kenaikan kelas</x-ui.link-button>
@@ -18,7 +18,7 @@
                         <x-ui.button type="submit" variant="teal" class="min-h-10 px-3">Cari</x-ui.button>
                         @if ($search !== '')<x-ui.link-button :href="route('admin.students.index')" variant="muted" class="min-h-10 px-3">Reset</x-ui.link-button>@endif
                     </form>
-                    <x-ui.filter-panel title="Filter siswa" description="Persempit daftar berdasarkan kelas." :active="$selectedClassId ? 1 : 0">
+                    <x-ui.filter-panel title="Filter siswa" :active="$selectedClassId ? 1 : 0">
                         <form method="GET" class="grid gap-3 sm:grid-cols-[1fr_auto_auto] sm:items-end">
                             <input type="hidden" name="search" value="{{ $search }}">
                             <label class="block text-xs font-bold uppercase tracking-wider text-ocular-teal">Kelas<select name="class_id" class="mt-2 min-h-11 w-full border border-slate-300 bg-white px-3 text-sm"><option value="">Semua kelas</option>@foreach ($classes as $class)<option value="{{ $class->id }}" @selected($selectedClassId == $class->id)>{{ $class->name }} · {{ $class->academicYear->name }}</option>@endforeach</select></label>

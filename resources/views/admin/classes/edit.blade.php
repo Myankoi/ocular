@@ -1,5 +1,5 @@
 <x-layouts.app title="Edit Kelas - Ocular">
-    <x-ui.page eyebrow="Classes" title="Edit kelas" description="Perbarui data kelas tanpa menghapus histori absensi yang sudah tersimpan.">
+    <x-ui.page eyebrow="Data master" title="Edit kelas">
         <x-ui.card class="max-w-2xl border border-ocular-teal/15">
             <form method="POST" action="{{ route('admin.classes.update', $class) }}" class="space-y-5">
                 @csrf

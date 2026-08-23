@@ -1,5 +1,5 @@
 <x-layouts.app title="Admin Dashboard - Ocular">
-    <x-ui.page title="Dashboard admin" description="Pantau data dan kehadiran sekolah hari ini.">
+    <x-ui.page title="Dashboard admin">
         <x-slot:actions>
             <div
                 class="inline-flex items-center gap-2 border border-ocular-teal/15 bg-white px-3 py-2 text-xs text-ocular-copy/70 shadow-[var(--shadow-card)]">
@@ -50,10 +50,8 @@
             </x-ui.card>
             <x-ui.card class="border border-ocular-orange/25 bg-white">
                 <p class="text-[10px] font-black uppercase tracking-[0.2em] text-ocular-orange">Aksi cepat</p>
-                <h2 class="mt-2 text-lg font-black text-ocular-teal">Kelola data sekolah</h2>
-                <div class="mt-5 grid gap-2"><x-ui.link-button :href="route('admin.students.index')">Kelola
-                        siswa</x-ui.link-button><x-ui.link-button :href="route('admin.schedules.index')" variant="outline">Kelola
-                        jadwal</x-ui.link-button><x-ui.link-button :href="route('admin.attendances.index')" variant="muted">Laporan
+                <h2 class="mt-2 text-lg font-black text-ocular-teal">Aksi data</h2>
+                <div class="mt-5 grid gap-2"><x-ui.link-button :href="route('admin.students.index')">Siswa</x-ui.link-button><x-ui.link-button :href="route('admin.schedules.index')" variant="outline">Jadwal</x-ui.link-button><x-ui.link-button :href="route('admin.attendances.index')" variant="muted">Laporan
                         absensi</x-ui.link-button></div>
             </x-ui.card>
         </section>

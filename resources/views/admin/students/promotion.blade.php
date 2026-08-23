@@ -1,5 +1,5 @@
 <x-layouts.app title="Kenaikan Kelas - Ocular">
-    <x-ui.page eyebrow="Students" title="Kenaikan kelas" description="Pindahkan seluruh siswa aktif dari kelas asal ke kelas tujuan tanpa menghapus histori absensi.">
+    <x-ui.page eyebrow="Data master" title="Kenaikan kelas">
         <x-ui.flash :message="session('success')" />
 
         <x-ui.card class="max-w-2xl border border-ocular-teal/15">

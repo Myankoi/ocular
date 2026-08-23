@@ -1,12 +1,12 @@
 <x-layouts.app title="QR Code Siswa - Ocular">
-    <x-ui.page eyebrow="Data siswa" title="QR code siswa" description="Unduh QR code berisi NISN untuk kebutuhan absensi.">
+    <x-ui.page eyebrow="Data siswa" title="QR code siswa">
         <x-slot:actions>
             <form method="GET" class="flex min-w-0 items-center gap-2 sm:w-[20rem]">
                 <x-ui.search-input name="search" :value="$search" placeholder="Cari nama, NIS, atau NISN..." id="qr-search" />
                 <x-ui.button type="submit" variant="teal" class="min-h-10 px-3">Cari</x-ui.button>
                 @if ($search !== '')<x-ui.link-button :href="route('admin.students.qr-codes.index')" variant="muted" class="min-h-10 px-3">Reset</x-ui.link-button>@endif
             </form>
-            <x-ui.filter-panel title="Filter QR" description="Persempit daftar berdasarkan kelas." :active="$selectedClassId ? 1 : 0">
+            <x-ui.filter-panel title="Filter QR" :active="$selectedClassId ? 1 : 0">
                 <form method="GET" class="grid gap-3 sm:grid-cols-[1fr_auto_auto] sm:items-end">
                     <input type="hidden" name="search" value="{{ $search }}">
                     <label class="block text-xs font-bold uppercase tracking-wider text-ocular-teal">Kelas
@@ -57,7 +57,7 @@
                         <div class="min-w-0 flex-1"><h3 class="truncate font-semibold text-ocular-teal">{{ $student->name }}</h3><p class="mt-1 font-mono text-[10px] text-ocular-copy/60">{{ $student->nisn }} · {{ $student->schoolClass->name }}</p><x-ui.link-button :href="route('admin.students.qr-codes.download', $student)" variant="outline" class="mt-3 min-h-9 px-3 py-2 text-[10px]">Download PNG</x-ui.link-button></div>
                     </article>
                 @empty
-                    <p class="px-4 py-12 text-center text-sm text-ocular-copy/60">Tidak ada siswa sesuai filter.</p>
+                    <p class="px-4 py-12 text-center text-sm text-ocular-copy/60">Data kosong.</p>
                 @endforelse
             </div>
             <div class="px-4 pb-4 sm:px-5"><x-ui.pagination :paginator="$students" /></div>

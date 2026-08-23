@@ -1,5 +1,5 @@
 <x-layouts.app title="Tambah Tahun Ajaran - Ocular">
-    <x-ui.page eyebrow="Academic Years" title="Tambah tahun ajaran" description="Atur tahun ajaran dan semester yang menjadi konteks data kelas, jadwal, dan absensi.">
+    <x-ui.page eyebrow="Pengaturan akademik" title="Tambah tahun ajaran">
         <x-ui.card class="max-w-2xl border border-ocular-teal/15">
             <form method="POST" action="{{ route('admin.academic-years.store') }}" class="space-y-5">
                 @csrf

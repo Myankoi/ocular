@@ -52,9 +52,7 @@
                 <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <div>
                         <h2 class="font-semibold">Scan QR Siswa</h2>
-                        <p class="mt-1 text-sm text-slate-500">
-                            Arahkan QR ke dalam kotak sampai memenuhi area fokus. Tahan stabil sebentar; input manual tetap tersedia kalau kamera bermasalah.
-                        </p>
+                        <p class="mt-1 text-sm text-slate-500">Arahkan QR ke area fokus.</p>
                     </div>
 
                     <div class="flex items-center gap-2">
@@ -194,7 +192,7 @@
                             <button data-bulk-attendance-submit disabled class="min-h-10 border border-ocular-teal bg-ocular-teal px-4 text-[10px] font-black uppercase tracking-wider text-white disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-100 disabled:text-slate-400">Terapkan ke pilihan</button>
                         </form>
                     @else
-                        <span class="text-xs text-slate-400">Perubahan terkunci H+3</span>
+                        <span class="text-xs text-slate-400">Terkunci H+3</span>
                     @endif
                 </div>
             </div>

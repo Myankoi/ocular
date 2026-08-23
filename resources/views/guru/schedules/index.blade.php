@@ -11,7 +11,7 @@
         ];
     @endphp
     <a href="{{ route('guru.dashboard') }}" class="mb-4 inline-flex min-h-10 items-center gap-2 text-xs font-bold uppercase tracking-wider text-ocular-teal hover:text-ocular-teal-dark"><i data-lucide="arrow-left" class="size-4"></i> Dashboard</a>
-    <x-ui.page eyebrow="Jadwal Guru" title="{{ $scope === 'all' ? 'Semua jadwal' : 'Jadwal saya' }}" description="Lihat jadwal aktif dan buka detail tanpa kehilangan konteks.">
+    <x-ui.page eyebrow="Jadwal Guru" title="{{ $scope === 'all' ? 'Semua jadwal' : 'Jadwal saya' }}">
         <x-slot:actions>
             <div class="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
                 <nav class="flex border border-ocular-teal/15 bg-white" aria-label="Mode tampilan jadwal">
@@ -139,7 +139,7 @@
                     </div>
                 </x-ui.card>
             @empty
-                <div class="border-2 border-dashed border-ocular-accent/20 px-5 py-10 text-center text-sm text-ocular-copy/60">Belum ada jadwal mengajar pada tahun ajaran aktif.</div>
+                <div class="border-2 border-dashed border-ocular-accent/20 px-5 py-10 text-center text-sm text-ocular-copy/60">Jadwal kosong.</div>
             @endforelse
         </div>
 

@@ -1,5 +1,5 @@
 <x-layouts.app title="Sesi Absensi - Ocular">
-    <x-ui.page eyebrow="Sesi Guru" title="Sesi absensi hari ini" description="Akses cepat untuk membuka atau melanjutkan scan absensi tanpa lewat dashboard.">
+    <x-ui.page eyebrow="Sesi Guru" title="Sesi absensi hari ini">
         <x-slot:actions>
             <x-ui.link-button :href="route('guru.schedules.index')" variant="outline">
                 <i data-lucide="calendar-clock" class="size-4"></i>
@@ -65,7 +65,7 @@
                 @empty
                     <div class="px-5 py-12 text-center">
                         <p class="text-sm font-semibold text-ocular-teal">Tidak ada jadwal hari ini.</p>
-                        <p class="mt-1 text-sm text-ocular-copy/60">Cek menu Jadwal Mengajar untuk melihat jadwal hari lain.</p>
+                        <p class="mt-1 text-sm text-ocular-copy/60">Tidak ada sesi.</p>
                     </div>
                 @endforelse
             </div>

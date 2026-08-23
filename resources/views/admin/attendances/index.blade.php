@@ -1,13 +1,13 @@
 <x-layouts.app title="Laporan Absensi - Ocular">
     @php($activeFilterCount = collect($filters)->filter(fn ($value) => filled($value))->count())
 
-    <x-ui.page eyebrow="Laporan Admin" title="Attendance logs" description="Log hasil sesi absensi. Admin hanya mengoreksi status bila diperlukan.">
+    <x-ui.page eyebrow="Laporan Admin" title="Attendance logs">
         <x-slot:actions>
             <x-ui.link-button :href="route('admin.attendances.export', request()->query())" variant="outline">
                 <i data-lucide="download" class="size-4"></i>
                 Unduh Excel
             </x-ui.link-button>
-            <x-ui.filter-panel title="Filter laporan" description="Gunakan filter untuk menyiapkan rekap yang ingin diunduh." :active="$activeFilterCount">
+            <x-ui.filter-panel title="Filter laporan" :active="$activeFilterCount">
                 <form method="GET" class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                     @foreach ([
                         ['name' => 'academic_year_id', 'label' => 'Tahun ajaran', 'options' => $academicYears],
@@ -38,7 +38,7 @@
                 @forelse ($attendances as $attendance)
                     <tr class="hover:bg-ocular-surface/60"><td class="px-5 py-3 font-mono text-xs">{{ $attendance->session->date->format('d/m/Y') }}</td><td class="px-5 py-3 font-semibold text-ocular-teal">{{ $attendance->student->name }}</td><td class="px-5 py-3">{{ $attendance->session->schedule->schoolClass->name }}</td><td class="px-5 py-3">{{ $attendance->session->schedule->subject->name }}</td><td class="px-5 py-3">{{ $attendance->session->schedule->teacher->name }}</td><td class="px-5 py-3"><x-ui.status-badge :status="$attendance->status" /></td><td class="px-5 py-3"><button type="button" data-attendance-edit data-action="{{ route('admin.attendances.update', $attendance) }}" data-status="{{ $attendance->status }}" data-notes="{{ $attendance->notes ?? '' }}" data-student="{{ $attendance->student->name }}" data-context="{{ $attendance->session->date->format('d/m/Y') }} · {{ $attendance->session->schedule->schoolClass->name }}" class="min-h-9 border border-ocular-teal/30 px-3 text-[10px] font-black uppercase tracking-wider text-ocular-teal transition hover:bg-ocular-teal/5">Koreksi</button></td></tr>
                 @empty
-                    <tr><td colspan="7" class="px-5 py-12 text-center text-sm text-ocular-copy/60">Belum ada record sesuai filter.</td></tr>
+                    <tr><td colspan="7" class="px-5 py-12 text-center text-sm text-ocular-copy/60">Data kosong.</td></tr>
                 @endforelse
             </tbody></table></div>
             <div class="divide-y divide-slate-100 md:hidden">
@@ -58,7 +58,7 @@
                         <div class="border-t border-slate-100 pt-3"><button type="button" data-attendance-edit data-action="{{ route('admin.attendances.update', $attendance) }}" data-status="{{ $attendance->status }}" data-notes="{{ $attendance->notes ?? '' }}" data-student="{{ $attendance->student->name }}" data-context="{{ $attendance->session->date->format('d/m/Y') }} · {{ $attendance->session->schedule->schoolClass->name }}" class="min-h-9 border border-ocular-teal/30 px-3 text-[10px] font-black uppercase tracking-wider text-ocular-teal transition hover:bg-ocular-teal/5">Koreksi status</button></div>
                     </article>
                 @empty
-                    <p class="px-4 py-12 text-center text-sm text-ocular-copy/60">Belum ada record sesuai filter.</p>
+                    <p class="px-4 py-12 text-center text-sm text-ocular-copy/60">Data kosong.</p>
                 @endforelse
             </div>
             <div class="px-4 pb-4 sm:px-5"><x-ui.pagination :paginator="$attendances" /></div>

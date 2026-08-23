@@ -1,5 +1,5 @@
 <x-layouts.app title="Tambah Jadwal - Ocular">
-    <x-ui.page eyebrow="Data akademik" title="Tambah jadwal" description="Isi detail jadwal mengajar untuk memasukkannya ke peta jadwal.">
+    <x-ui.page eyebrow="Data akademik" title="Tambah jadwal">
         <x-slot:actions><x-ui.link-button :href="route('admin.schedules.index')" variant="muted">Kembali ke jadwal</x-ui.link-button></x-slot:actions>
         <x-ui.card class="max-w-2xl border border-ocular-teal/15">
             <form method="POST" action="{{ route('admin.schedules.store') }}" class="space-y-5">

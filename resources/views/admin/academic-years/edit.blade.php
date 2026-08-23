@@ -1,5 +1,5 @@
 <x-layouts.app title="Edit Tahun Ajaran - Ocular">
-    <x-ui.page eyebrow="Academic Years" title="Edit tahun ajaran" description="Perbarui semester atau periode tahun ajaran tanpa menghapus histori terkait.">
+    <x-ui.page eyebrow="Pengaturan akademik" title="Edit tahun ajaran">
         <x-ui.card class="max-w-2xl border border-ocular-teal/15">
             <form method="POST" action="{{ route('admin.academic-years.update', $academicYear) }}" class="space-y-5">
                 @csrf

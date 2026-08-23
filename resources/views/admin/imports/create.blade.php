@@ -1,5 +1,5 @@
 <x-layouts.app title="Import Data - Ocular">
-    <x-ui.page eyebrow="Data center" title="Import data sekolah" description="Upload guru, siswa, jadwal, dan foto ID card melalui satu workflow yang tervalidasi.">
+    <x-ui.page eyebrow="Data center" title="Import data">
         <x-slot:actions>
             <x-ui.link-button :href="route('admin.students.index')" variant="muted">Kembali ke siswa</x-ui.link-button>
             <x-ui.link-button :href="route('admin.imports.template')" variant="outline">Download template</x-ui.link-button>
@@ -47,7 +47,7 @@
                             </div>
 
                             <div class="flex flex-col gap-2 border-t border-slate-100 pt-5 sm:flex-row sm:items-center sm:justify-between">
-                                <p class="text-xs text-ocular-copy/55">Preview akan menandai data baru, update, error, dan foto yang cocok.</p>
+                                <p class="text-xs text-ocular-copy/55">Preview data sebelum simpan.</p>
                                 <x-ui.button variant="teal" class="w-full sm:w-auto">Validasi dan preview</x-ui.button>
                             </div>
                         </form>
@@ -55,7 +55,7 @@
 
                     <aside class="border-t border-ocular-teal/10 bg-ocular-surface/55 p-5 sm:p-6 lg:border-l lg:border-t-0 lg:p-7">
                         <p class="text-[10px] font-black uppercase tracking-[0.2em] text-ocular-orange">Format data</p>
-                        <h2 class="mt-2 text-lg font-black text-ocular-teal">Sebelum upload</h2>
+                        <h2 class="mt-2 text-lg font-black text-ocular-teal">Format</h2>
                         <dl class="mt-5 space-y-4 text-sm">
                             <div>
                                 <dt class="text-[10px] font-black uppercase tracking-[0.16em] text-ocular-accent">Sheet Excel</dt>
@@ -92,7 +92,7 @@
                     <div>
                         <p class="text-[10px] font-black uppercase tracking-[0.2em] text-ocular-orange">Langkah 2</p>
                         <h2 class="mt-2 text-xl font-black text-ocular-teal">Preview import</h2>
-                        <p class="mt-1 text-sm text-ocular-copy/70">Semua error harus diperbaiki sebelum data bisa disimpan.</p>
+                        <p class="mt-1 text-sm text-ocular-copy/70">Error wajib beres.</p>
                     </div>
                     <div class="grid grid-cols-2 gap-2 text-center sm:grid-cols-4">
                         <div class="border border-slate-200 px-3 py-2"><p class="font-mono text-lg font-black text-ocular-teal">{{ $summary['total'] }}</p><p class="text-[9px] font-bold uppercase tracking-wider text-ocular-copy/50">Total</p></div>
@@ -139,7 +139,7 @@
                 <input type="hidden" name="token" value="{{ $token }}">
                 <label class="flex items-start gap-3 text-sm text-ocular-copy">
                     <input type="checkbox" name="reset_first" value="1" class="mt-1 size-4 border-slate-300 text-ocular-orange">
-                    <span><span class="block font-bold text-ocular-teal">Reset data lama dulu</span><span class="mt-1 block text-xs text-ocular-copy/60">Menghapus histori absensi, jadwal, siswa, guru, dan mapel. Admin, kelas, dan tahun ajaran tetap.</span></span>
+                    <span><span class="block font-bold text-ocular-teal">Reset data lama</span><span class="mt-1 block text-xs text-ocular-copy/60">Hapus absensi, jadwal, siswa, guru, dan mapel.</span></span>
                 </label>
                 <div class="flex flex-col gap-2 sm:flex-row sm:items-center">
                     <x-ui.link-button :href="route('admin.imports.create')" variant="muted">Batalkan</x-ui.link-button>

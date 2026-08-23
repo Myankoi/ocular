@@ -1,5 +1,5 @@
 <x-layouts.app title="Kelas Saya - Ocular">
-    <x-ui.page eyebrow="Kelas Guru" title="Kelas saya" description="Lihat kelas yang Anda ampu, daftar siswa aktif, dan konteks jadwalnya.">
+    <x-ui.page eyebrow="Kelas Guru" title="Kelas saya">
         <x-slot:actions>
             <x-ui.link-button :href="route('guru.schedules.index')" variant="outline">
                 <i data-lucide="calendar-clock" class="size-4"></i>
@@ -32,7 +32,7 @@
                             <p class="mt-3 line-clamp-2 text-xs text-ocular-copy/60">{{ $class->schedules->pluck('subject.name')->unique()->join(', ') ?: 'Belum ada mapel' }}</p>
                         </a>
                     @empty
-                        <p class="px-4 py-10 text-center text-sm text-ocular-copy/60">Belum ada kelas yang diampu pada tahun ajaran aktif.</p>
+                        <p class="px-4 py-10 text-center text-sm text-ocular-copy/60">Belum ada kelas.</p>
                     @endforelse
                 </div>
             </x-ui.card>
@@ -101,7 +101,7 @@
                 @else
                     <div class="px-5 py-12 text-center">
                         <p class="text-sm font-semibold text-ocular-teal">Belum ada kelas.</p>
-                        <p class="mt-1 text-sm text-ocular-copy/60">Kelas akan muncul setelah admin mengatur jadwal mengajar Anda.</p>
+                        <p class="mt-1 text-sm text-ocular-copy/60">Jadwal belum tersedia.</p>
                     </div>
                 @endif
             </x-ui.card>

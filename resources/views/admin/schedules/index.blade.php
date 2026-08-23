@@ -12,14 +12,14 @@
         $activeDayLabel = $days[$selectedDay] ?? 'Senin';
     @endphp
 
-    <x-ui.page eyebrow="Data akademik" title="Jadwal" description="Atur jadwal mengajar dalam blok waktu yang mudah dibaca.">
+    <x-ui.page eyebrow="Data akademik" title="Jadwal">
         <x-slot:actions>
             <form method="GET" class="flex min-w-0 items-center gap-2 sm:w-[22rem]">
                 <x-ui.search-input name="search" :value="$search" placeholder="Cari kelas, mapel, atau guru..." id="schedule-search" />
                 <x-ui.button type="submit" variant="teal" class="min-h-10 px-3">Cari</x-ui.button>
                 @if ($search !== '')<x-ui.link-button :href="route('admin.schedules.index')" variant="muted" class="min-h-10 px-3">Reset</x-ui.link-button>@endif
             </form>
-            <x-ui.filter-panel title="Filter jadwal" description="Persempit berdasarkan tahun ajaran, kelas, atau guru." :active="collect([$selectedAcademicYearId, $selectedClassId, $selectedTeacherId])->filter(fn ($value) => filled($value))->count()">
+            <x-ui.filter-panel title="Filter jadwal" :active="collect([$selectedAcademicYearId, $selectedClassId, $selectedTeacherId])->filter(fn ($value) => filled($value))->count()">
                 <form method="GET" class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                     <input type="hidden" name="search" value="{{ $search }}">
                     <label class="block text-xs font-bold uppercase tracking-wider text-ocular-teal">Tahun ajaran<select name="academic_year_id" class="mt-2 min-h-11 w-full border border-slate-300 bg-white px-3 text-sm"><option value="">Semua</option>@foreach ($academicYears as $academicYear)<option value="{{ $academicYear->id }}" @selected($selectedAcademicYearId == $academicYear->id)>{{ $academicYear->name }} · {{ $academicYear->semester === 1 ? 'Ganjil' : 'Genap' }}</option>@endforeach</select></label>
@@ -165,7 +165,7 @@
                     </div>
                 </x-ui.card>
             @empty
-                <div class="border-2 border-dashed border-ocular-accent/20 px-5 py-12 text-center text-sm text-ocular-copy/60">Belum ada data jadwal untuk filter ini.</div>
+                <div class="border-2 border-dashed border-ocular-accent/20 px-5 py-12 text-center text-sm text-ocular-copy/60">Jadwal kosong.</div>
             @endforelse
         </div>
         <x-ui.pagination :paginator="$schedules" />

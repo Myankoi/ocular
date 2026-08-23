@@ -11,7 +11,7 @@
         }
     </style>
 
-    <x-ui.page eyebrow="Data master / Siswa" title="Edit siswa" description="Perbarui biodata dan referensi foto ID card siswa.">
+    <x-ui.page eyebrow="Data master / Siswa" title="Edit siswa">
         <x-slot:actions><x-ui.link-button :href="route('admin.students.index')" variant="muted">Kembali ke daftar</x-ui.link-button></x-slot:actions>
 
         <x-ui.flash :message="session('success')" />

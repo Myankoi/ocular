@@ -1,7 +1,7 @@
 @php($hasAttendanceHistory = $schedule->attendanceSessions()->exists())
 
 <x-layouts.app title="Edit Jadwal - Ocular">
-    <x-ui.page eyebrow="Data akademik" title="{{ $hasAttendanceHistory ? 'Kelola jadwal berhistori' : 'Edit jadwal' }}" description="{{ $hasAttendanceHistory ? 'Jadwal ini dikunci agar histori absensi tetap utuh.' : 'Perbarui blok jadwal sebelum sesi absensi dibuat.' }}">
+    <x-ui.page eyebrow="Data akademik" title="{{ $hasAttendanceHistory ? 'Kelola jadwal berhistori' : 'Edit jadwal' }}">
         <x-slot:actions><x-ui.link-button :href="route('admin.schedules.index')" variant="muted">Kembali ke jadwal</x-ui.link-button></x-slot:actions>
         <x-ui.card class="max-w-2xl border border-ocular-teal/15">
             @if ($hasAttendanceHistory)

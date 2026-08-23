@@ -1,5 +1,5 @@
 <x-layouts.app title="Tambah Mata Pelajaran - Ocular">
-    <x-ui.page eyebrow="Subjects" title="Tambah mata pelajaran" description="Tambahkan mata pelajaran RPL untuk dipakai pada jadwal dan laporan absensi.">
+    <x-ui.page eyebrow="Data master" title="Tambah mata pelajaran">
         <x-ui.card class="max-w-2xl border border-ocular-teal/15">
             <form method="POST" action="{{ route('admin.subjects.store') }}" class="space-y-5">
                 @csrf
