@@ -6,6 +6,9 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <title>{{ $title ?? 'Ocular' }}</title>
+    <link rel="icon" href="{{ asset('favicon.ico') }}" sizes="any">
+    <link rel="icon" type="image/png" href="{{ asset('favicon-32x32.png') }}">
+    <link rel="apple-touch-icon" href="{{ asset('apple-touch-icon.png') }}">
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
@@ -15,33 +18,36 @@
             $isAdmin = auth()->user()->role === 'admin';
             $navigation = $isAdmin
                 ? [
-                    ['label' => 'Dashboard', 'route' => 'admin.dashboard', 'active' => 'admin.dashboard', 'icon' => '⌂'],
-                    ['label' => 'Attendance Logs', 'route' => 'admin.attendances.index', 'active' => 'admin.attendances.*', 'icon' => '◷'],
-                    ['label' => 'Teachers', 'route' => 'admin.teachers.index', 'active' => 'admin.teachers.*', 'icon' => '♙'],
-                    ['label' => 'Students', 'route' => 'admin.students.index', 'active' => 'admin.students.*', 'icon' => '♧'],
-                    ['label' => 'Classes', 'route' => 'admin.classes.index', 'active' => 'admin.classes.*', 'icon' => '▦'],
-                    ['label' => 'Subjects', 'route' => 'admin.subjects.index', 'active' => 'admin.subjects.*', 'icon' => '▤'],
-                    ['label' => 'Academic Years', 'route' => 'admin.academic-years.index', 'active' => 'admin.academic-years.*', 'icon' => '◫'],
-                    ['label' => 'Schedules', 'route' => 'admin.schedules.index', 'active' => 'admin.schedules.*', 'icon' => '▧'],
+                    ['label' => 'Dashboard', 'route' => 'admin.dashboard', 'active' => 'admin.dashboard', 'icon' => 'home'],
+                    ['label' => 'Attendance Logs', 'route' => 'admin.attendances.index', 'active' => 'admin.attendances.*', 'icon' => 'clipboard-list'],
+                    ['label' => 'Teachers', 'route' => 'admin.teachers.index', 'active' => 'admin.teachers.*', 'icon' => 'graduation-cap'],
+                    ['label' => 'Students', 'route' => 'admin.students.index', 'active' => 'admin.students.*', 'icon' => 'users-round'],
+                    ['label' => 'Import Data', 'route' => 'admin.imports.create', 'active' => 'admin.imports.*', 'icon' => 'upload'],
+                    ['label' => 'Classes', 'route' => 'admin.classes.index', 'active' => 'admin.classes.*', 'icon' => 'school'],
+                    ['label' => 'Subjects', 'route' => 'admin.subjects.index', 'active' => 'admin.subjects.*', 'icon' => 'book-open'],
+                    ['label' => 'Academic Years', 'route' => 'admin.academic-years.index', 'active' => 'admin.academic-years.*', 'icon' => 'calendar-days'],
+                    ['label' => 'Schedules', 'route' => 'admin.schedules.index', 'active' => 'admin.schedules.*', 'icon' => 'calendar-clock'],
                 ]
                 : [
-                    ['label' => 'Dashboard', 'route' => 'guru.dashboard', 'active' => 'guru.dashboard', 'icon' => '⌂'],
-                    ['label' => 'Jadwal Mengajar', 'route' => 'guru.schedules.index', 'active' => 'guru.schedules.*', 'icon' => '▧'],
-                    ['label' => 'Riwayat Absensi', 'route' => 'guru.attendances.index', 'active' => ['guru.attendances.*', 'guru.sessions.*'], 'icon' => '◷'],
+                    ['label' => 'Dashboard', 'route' => 'guru.dashboard', 'active' => 'guru.dashboard', 'icon' => 'home'],
+                    ['label' => 'Sesi Absensi', 'route' => 'guru.sessions.index', 'active' => ['guru.sessions.index', 'guru.sessions.show'], 'icon' => 'scan-line'],
+                    ['label' => 'Jadwal Mengajar', 'route' => 'guru.schedules.index', 'active' => 'guru.schedules.*', 'icon' => 'calendar-clock'],
+                    ['label' => 'Kelas Saya', 'route' => 'guru.classes.index', 'active' => 'guru.classes.*', 'icon' => 'school'],
+                    ['label' => 'Rekap Absensi', 'route' => 'guru.attendances.index', 'active' => 'guru.attendances.*', 'icon' => 'clipboard-list'],
                 ];
         @endphp
 
         <div class="min-h-screen lg:flex">
             <aside class="sticky top-0 hidden h-screen w-64 shrink-0 flex-col bg-ocular-teal text-white lg:flex">
                 <div class="border-b border-white/10 px-6 pb-6 pt-8">
-                    <div class="flex items-center gap-3">
-                    <span class="grid size-10 shrink-0 place-items-center bg-ocular-orange text-xl font-bold text-white">◉</span>
                     <div>
-                        <p class="text-xl font-black leading-none tracking-tight">OCULAR</p>
+                        <a href="{{ $isAdmin ? route('admin.dashboard') : route('guru.dashboard') }}" class="inline-flex max-w-full items-center gap-1">
+                            <img src="{{ asset('images/ocular-mark.png') }}" alt="" class="ocular-sidebar-logo h-10 w-10 shrink-0 object-contain">
+                            <span class="ocular-sidebar-wordmark text-4xl font-black leading-none tracking-normal">CULAR</span>
+                        </a>
                         @if ($isAdmin)
                             <p class="mt-1 font-mono text-[9px] font-bold uppercase tracking-[0.2em] text-ocular-orange">Admin Hub</p>
                         @endif
-                    </div>
                     </div>
                     <p class="mt-6 font-mono text-[9px] font-bold uppercase tracking-[0.18em] text-white/35">SMKN 24 JAKARTA</p>
                 </div>
@@ -53,7 +59,7 @@
                                 @if ($isActive)
                                     <span class="absolute inset-y-0 left-0 w-1 bg-ocular-orange" aria-hidden="true"></span>
                                 @endif
-                                <span class="grid size-6 place-items-center text-[17px] font-semibold leading-none {{ $isActive ? 'text-ocular-orange' : 'text-white/45 group-hover:text-ocular-orange' }}">{{ $item['icon'] }}</span>
+                                <span class="grid size-6 place-items-center {{ $isActive ? 'text-ocular-orange' : 'text-white/45 group-hover:text-ocular-orange' }}"><i data-lucide="{{ $item['icon'] }}" class="size-[18px]"></i></span>
                                 <span class="text-xs font-bold uppercase tracking-wider">{{ $item['label'] }}</span>
                             </a>
                         @else
@@ -73,7 +79,7 @@
                         </div>
                         <form method="POST" action="{{ route('logout') }}">
                             @csrf
-                            <button title="Logout" class="grid size-9 place-items-center border border-white/15 text-sm text-white/60 transition hover:border-ocular-orange hover:text-ocular-orange">↪</button>
+                            <button title="Logout" class="grid size-9 place-items-center border border-white/15 text-white/60 transition hover:border-ocular-orange hover:text-ocular-orange"><i data-lucide="log-out" class="size-4"></i></button>
                         </form>
                     </div>
                 </div>
@@ -84,20 +90,20 @@
                     <div class="mx-auto flex max-w-7xl items-center justify-between">
                         <div class="flex items-center gap-3 lg:hidden">
                             <details class="relative" data-mobile-drawer>
-                                <summary class="grid min-h-11 min-w-11 cursor-pointer list-none place-items-center border {{ $isAdmin ? 'border-ocular-teal/25 text-ocular-teal' : 'border-white/30 text-white lg:border-slate-200 lg:text-ocular-teal' }}" aria-label="Buka navigasi">☰</summary>
+                                <summary class="grid min-h-11 min-w-11 cursor-pointer list-none place-items-center border {{ $isAdmin ? 'border-ocular-teal/25 text-ocular-teal' : 'border-white/30 text-white lg:border-slate-200 lg:text-ocular-teal' }}" aria-label="Buka navigasi"><i data-lucide="menu" class="size-5"></i></summary>
                                 <div class="fixed inset-0 z-40 bg-slate-950/50" aria-hidden="true" onclick="this.parentElement.removeAttribute('open')"></div>
                                 <nav class="fixed inset-y-0 left-0 z-50 flex w-[min(86vw,20rem)] touch-pan-y flex-col bg-ocular-teal text-white shadow-2xl" data-mobile-drawer-panel>
                                     <div class="flex items-center justify-between border-b border-white/10 px-6 pb-5 pt-7">
-                                        <div class="flex items-center gap-3">
-                                            <span class="grid size-10 place-items-center bg-ocular-orange text-xl font-bold">◉</span>
-                                            <div>
-                                                <p class="text-xl font-black leading-none tracking-tight">OCULAR</p>
-                                                @if ($isAdmin)
-                                                    <p class="mt-1 font-mono text-[9px] font-bold uppercase tracking-[0.2em] text-ocular-orange">Admin Hub</p>
-                                                @endif
-                                            </div>
+                                        <div>
+                                            <a href="{{ $isAdmin ? route('admin.dashboard') : route('guru.dashboard') }}" class="inline-flex max-w-full items-center gap-1">
+                                                <img src="{{ asset('images/ocular-mark.png') }}" alt="" class="ocular-sidebar-logo h-10 w-10 shrink-0 object-contain">
+                                                <span class="ocular-sidebar-wordmark text-4xl font-black leading-none tracking-normal">CULAR</span>
+                                            </a>
+                                            @if ($isAdmin)
+                                                <p class="mt-1 font-mono text-[9px] font-bold uppercase tracking-[0.2em] text-ocular-orange">Admin Hub</p>
+                                            @endif
                                         </div>
-                                        <button type="button" class="grid size-10 place-items-center border border-white/15 text-xl text-white/70 hover:text-white" aria-label="Tutup navigasi" onclick="this.closest('details').removeAttribute('open')">×</button>
+                                        <button type="button" class="grid size-10 place-items-center border border-white/15 text-white/70 hover:text-white" aria-label="Tutup navigasi" onclick="this.closest('details').removeAttribute('open')"><i data-lucide="x" class="size-5"></i></button>
                                     </div>
                                     <div class="flex-1 overflow-y-auto py-6">
                                         @foreach ($navigation as $item)
@@ -107,7 +113,7 @@
                                                     @if ($isMobileActive)
                                                         <span class="absolute inset-y-0 left-0 w-1 bg-ocular-orange" aria-hidden="true"></span>
                                                     @endif
-                                                    <span class="grid size-6 place-items-center text-[17px] font-semibold {{ $isMobileActive ? 'text-ocular-orange' : 'text-white/45' }}">{{ $item['icon'] }}</span>
+                                                    <span class="grid size-6 place-items-center {{ $isMobileActive ? 'text-ocular-orange' : 'text-white/45' }}"><i data-lucide="{{ $item['icon'] }}" class="size-[18px]"></i></span>
                                                     {{ $item['label'] }}
                                                 </a>
                                             @endif
@@ -122,14 +128,16 @@
                                             </div>
                                             <form method="POST" action="{{ route('logout') }}">
                                                 @csrf
-                                                <button title="Logout" class="grid size-9 place-items-center border border-white/15 text-sm text-white/60 hover:border-ocular-orange hover:text-ocular-orange">↪</button>
+                                                <button title="Logout" class="grid size-9 place-items-center border border-white/15 text-white/60 hover:border-ocular-orange hover:text-ocular-orange"><i data-lucide="log-out" class="size-4"></i></button>
                                             </form>
                                         </div>
                                     </div>
                                 </nav>
                             </details>
                             @if ($isAdmin)
-                                <a href="{{ url('/') }}" class="font-semibold tracking-tight text-ocular-teal">OCULAR</a>
+                                <a href="{{ route('admin.dashboard') }}" class="inline-flex items-center">
+                                    <img src="{{ asset('images/ocular-logo.png') }}" alt="Ocular" class="h-7 w-auto">
+                                </a>
                             @else
                                 <div>
                                     <p class="text-[9px] font-mono font-bold uppercase tracking-[0.2em] text-white/70 lg:text-ocular-accent">SMKN 24 JAKARTA</p>
