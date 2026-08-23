@@ -7,10 +7,11 @@ use App\Models\Attendance;
 use App\Models\AttendanceSession;
 use App\Models\AttendanceLog;
 use App\Models\Schedule;
+use App\Models\Student;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\View\View;
 
 class AttendanceSessionController extends Controller
@@ -19,6 +20,10 @@ class AttendanceSessionController extends Controller
     {
         $schedule->load('academicYear');
         abort_unless($schedule->user_id === $request->user()->id, 403);
+
+        if ($schedule->archived_at) {
+            return back()->withErrors(['session' => 'Jadwal ini sudah diarsipkan dan tidak dapat membuka sesi baru.']);
+        }
 
         if (! $schedule->academicYear?->is_active || (int) $schedule->day_of_week !== now()->dayOfWeekIso) {
             return back()->withErrors(['session' => 'Sesi hanya dapat dibuka untuk jadwal aktif pada hari ini.']);
@@ -82,35 +87,27 @@ class AttendanceSessionController extends Controller
         $attendanceSession->load([
             'schedule.subject',
             'schedule.schoolClass',
-            'attendances.student',
         ]);
 
         abort_unless($attendanceSession->schedule->user_id === $request->user()->id, 403);
 
-        $allAttendances = $attendanceSession->attendances
-            ->sortBy(fn (Attendance $attendance) => $attendance->student->name)
-            ->values();
-        $perPage = 25;
-        $page = max(1, (int) $request->integer('student_page', 1));
-        $attendances = new LengthAwarePaginator(
-            $allAttendances->forPage($page, $perPage)->values(),
-            $allAttendances->count(),
-            $perPage,
-            $page,
-            [
-                'path' => $request->url(),
-                'query' => $request->query(),
-                'pageName' => 'student_page',
-            ],
-        );
+        $attendances = $attendanceSession->attendances()
+            ->with('student')
+            ->orderBy(Student::select('name')->whereColumn('students.id', 'attendances.student_id'))
+            ->paginate(25, ['*'], 'student_page')
+            ->withQueryString();
+        $studentTotal = $attendanceSession->attendances()->count();
+        $studentPresent = $attendanceSession->attendances()->where('status', 'hadir')->count();
+        $studentExcused = $attendanceSession->attendances()->whereIn('status', ['izin', 'sakit'])->count();
+        $studentAlpha = $attendanceSession->attendances()->where('status', 'alpha')->count();
 
         return view('guru.sessions.show', [
             'session' => $attendanceSession,
             'attendances' => $attendances,
-            'studentTotal' => $allAttendances->count(),
-            'studentPresent' => $allAttendances->where('status', 'hadir')->count(),
-            'studentExcused' => $allAttendances->whereIn('status', ['izin', 'sakit'])->count(),
-            'studentAlpha' => $allAttendances->where('status', 'alpha')->count(),
+            'studentTotal' => $studentTotal,
+            'studentPresent' => $studentPresent,
+            'studentExcused' => $studentExcused,
+            'studentAlpha' => $studentAlpha,
         ]);
     }
 
@@ -134,7 +131,7 @@ class AttendanceSessionController extends Controller
             ->with('success', 'Sesi absensi berhasil ditutup.');
     }
 
-    public function updateAttendance(Request $request, AttendanceSession $attendanceSession, Attendance $attendance): RedirectResponse
+    public function updateAttendance(Request $request, AttendanceSession $attendanceSession, Attendance $attendance): RedirectResponse|JsonResponse
     {
         $attendanceSession->load('schedule');
 
@@ -167,6 +164,82 @@ class AttendanceSessionController extends Controller
             'updated_by' => $request->user()->id,
         ]);
 
+        if ($request->expectsJson()) {
+            return response()->json([
+                'message' => 'Status kehadiran berhasil diperbarui.',
+                'attendance' => [
+                    'id' => $attendance->id,
+                    'student_id' => $attendance->student_id,
+                    'status' => $attendance->status,
+                    'scanned_at' => $attendance->scanned_at?->format('H:i'),
+                ],
+            ]);
+        }
+
         return back()->with('success', 'Status kehadiran berhasil diperbarui.');
+    }
+
+    public function bulkUpdateAttendances(Request $request, AttendanceSession $attendanceSession): RedirectResponse|JsonResponse
+    {
+        $attendanceSession->load('schedule');
+
+        abort_unless($attendanceSession->schedule->user_id === $request->user()->id, 403);
+
+        if ($attendanceSession->date->lt(now()->subDays(3)->startOfDay())) {
+            return back()->withErrors(['attendance' => 'Perubahan guru hanya dapat dilakukan sampai H+3 dari tanggal sesi.']);
+        }
+
+        $data = $request->validate([
+            'attendance_ids' => ['required', 'array', 'min:1'],
+            'attendance_ids.*' => ['integer'],
+            'status' => ['required', 'in:hadir,sakit,izin,alpha'],
+        ]);
+
+        $attendances = Attendance::query()
+            ->where('session_id', $attendanceSession->id)
+            ->whereIn('id', $data['attendance_ids'])
+            ->get();
+
+        if ($attendances->isEmpty()) {
+            return back()->withErrors(['attendance' => 'Pilih minimal satu siswa yang valid.']);
+        }
+
+        $updated = 0;
+
+        DB::transaction(function () use ($attendances, $data, $request, &$updated): void {
+            foreach ($attendances as $attendance) {
+                if ($attendance->status !== $data['status']) {
+                    AttendanceLog::create([
+                        'attendance_id' => $attendance->id,
+                        'old_status' => $attendance->status,
+                        'new_status' => $data['status'],
+                        'changed_by' => $request->user()->id,
+                        'changed_at' => now(),
+                    ]);
+                }
+
+                $attendance->update([
+                    'status' => $data['status'],
+                    'scanned_at' => $data['status'] === 'hadir' ? ($attendance->scanned_at ?? now()) : null,
+                    'updated_by' => $request->user()->id,
+                ]);
+
+                $updated++;
+            }
+        });
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'message' => "{$updated} status siswa berhasil diperbarui.",
+                'attendances' => $attendances->map(fn (Attendance $attendance): array => [
+                    'id' => $attendance->id,
+                    'student_id' => $attendance->student_id,
+                    'status' => $attendance->status,
+                    'scanned_at' => $attendance->scanned_at?->format('H:i'),
+                ])->values(),
+            ]);
+        }
+
+        return back()->with('success', "{$updated} status siswa berhasil diperbarui.");
     }
 }

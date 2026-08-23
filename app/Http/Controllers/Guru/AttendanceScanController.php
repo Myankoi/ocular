@@ -88,6 +88,7 @@ class AttendanceScanController extends Controller
                 'message' => $student->name . ' berhasil tercatat hadir.',
                 'attendance' => [
                     'id' => $attendance->id,
+                    'student_id' => $attendance->student_id,
                     'status' => $attendance->status,
                     'scanned_at' => $attendance->scanned_at?->format('H:i'),
                 ],
@@ -95,6 +96,11 @@ class AttendanceScanController extends Controller
                     'id' => $student->id,
                     'name' => $student->name,
                     'nisn' => $student->nisn,
+                    'nis' => $student->nis,
+                    'class' => $attendanceSession->schedule->schoolClass->name,
+                    'photo_url' => $student->photo
+                        ? route('guru.sessions.students.photo', [$attendanceSession, $student])
+                        : null,
                 ],
             ]);
         }
