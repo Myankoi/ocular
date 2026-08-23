@@ -27,8 +27,108 @@
     70% { box-shadow: 0 0 0 14px rgba(205, 111, 45, 0); }
 }
 
+@keyframes ocular-card-deal {
+    0% {
+        opacity: 0;
+        transform: translate3d(-38%, 26px, 0) rotate(-18deg) scale(0.55);
+        filter: blur(8px);
+    }
+    45% {
+        opacity: 1;
+        transform: translate3d(4%, -8px, 0) rotate(7deg) scale(1.06);
+        filter: blur(0);
+    }
+    72% {
+        transform: translate3d(-2%, 2px, 0) rotate(-2deg) scale(0.98);
+    }
+    100% {
+        opacity: 1;
+        transform: translate3d(0, 0, 0) rotate(0) scale(1);
+        filter: blur(0);
+    }
+}
+
 .ocular-scanner-frame {
     animation: ocular-scan-pulse 2s infinite;
+}
+
+.ocular-last-result-card {
+    transform-origin: left bottom;
+}
+
+.ocular-last-result-card--animate {
+    animation: ocular-card-deal 680ms cubic-bezier(.2, .9, .18, 1.08);
+}
+
+.ocular-scanner-stage:fullscreen .ocular-last-result-card {
+    bottom: 0.75rem;
+    left: 0.75rem;
+    right: 0.75rem;
+    width: auto;
+    max-width: 28rem;
+    padding: 0.65rem;
+}
+
+.ocular-scanner-stage:fullscreen .ocular-last-result-card img {
+    width: 4rem;
+    height: 6rem;
+}
+
+.ocular-scanner-stage:fullscreen .ocular-last-result-card h3 {
+    font-size: 1rem;
+    line-height: 1.1;
+}
+
+.ocular-scanner-stage:fullscreen .ocular-last-result-card p {
+    font-size: 0.75rem;
+}
+
+.ocular-scanner-stage:fullscreen .ocular-last-result-card [data-last-result-nisn],
+.ocular-scanner-stage:fullscreen .ocular-last-result-card [data-last-result-time] {
+    font-size: 0.56rem;
+}
+
+@media (max-width: 640px) {
+    .ocular-scanner-stage:fullscreen {
+        gap: 0.5rem;
+        padding: 0.5rem;
+    }
+
+    .ocular-scanner-stage:fullscreen .ocular-scanner-viewport {
+        flex: 1 1 auto;
+    }
+
+    .ocular-scanner-stage:fullscreen .ocular-last-result-card {
+        bottom: 0.5rem;
+        left: 0.5rem;
+        right: 0.5rem;
+        max-width: none;
+        padding: 0.5rem;
+    }
+
+    .ocular-scanner-stage:fullscreen .ocular-last-result-card img {
+        width: 3.25rem;
+        height: 4.875rem;
+    }
+}
+
+.ocular-sidebar-logo {
+    filter:
+        drop-shadow(1px 0 0 rgba(255, 255, 255, 0.95))
+        drop-shadow(-1px 0 0 rgba(255, 255, 255, 0.95))
+        drop-shadow(0 1px 0 rgba(255, 255, 255, 0.95))
+        drop-shadow(0 -1px 0 rgba(255, 255, 255, 0.95))
+        drop-shadow(0 6px 14px rgba(21, 45, 51, 0.35));
+}
+
+.ocular-sidebar-wordmark {
+    color: #3c6974;
+    text-shadow:
+        1px 0 0 rgba(255, 255, 255, 0.95),
+        -1px 0 0 rgba(255, 255, 255, 0.95),
+        0 1px 0 rgba(255, 255, 255, 0.95),
+        0 -1px 0 rgba(255, 255, 255, 0.95),
+        0 5px 14px rgba(21, 45, 51, 0.35);
 }
 
 .ocular-scanner-stage:fullscreen {

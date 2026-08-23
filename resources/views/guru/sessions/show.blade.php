@@ -1,5 +1,5 @@
 <x-layouts.app title="Sesi Absensi - Ocular">
-    <a href="{{ route('guru.dashboard') }}" class="mb-4 inline-flex min-h-10 items-center gap-2 text-xs font-bold uppercase tracking-wider text-ocular-teal hover:text-ocular-teal-dark"><span class="text-base">←</span> Dashboard</a>
+    <a href="{{ route('guru.dashboard') }}" class="mb-4 inline-flex min-h-10 items-center gap-2 text-xs font-bold uppercase tracking-wider text-ocular-teal hover:text-ocular-teal-dark"><i data-lucide="arrow-left" class="size-4"></i> Dashboard</a>
     <div class="space-y-5 pb-2">
         <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
@@ -53,7 +53,7 @@
                     <div>
                         <h2 class="font-semibold">Scan QR Siswa</h2>
                         <p class="mt-1 text-sm text-slate-500">
-                            QR Code ID card berisi NISN siswa. Input manual tetap tersedia kalau kamera bermasalah.
+                            Arahkan QR ke dalam kotak sampai memenuhi area fokus. Tahan stabil sebentar; input manual tetap tersedia kalau kamera bermasalah.
                         </p>
                     </div>
 
@@ -68,23 +68,41 @@
                 <div class="mt-4 space-y-4">
                     <div class="ocular-scanner-stage space-y-3" data-scanner-stage>
                         <div class="ocular-scanner-viewport relative h-[min(62vh,34rem)] overflow-hidden bg-slate-950 p-3">
-                            <div id="qr-reader" class="min-h-[280px] overflow-hidden bg-slate-900"></div>
+                            <div id="qr-reader" class="min-h-[320px] overflow-hidden bg-slate-900"></div>
                             <div class="ocular-scanner-frame pointer-events-none absolute left-1/2 top-1/2 size-[min(70vw,18rem)] -translate-x-1/2 -translate-y-1/2 border-4 border-ocular-orange sm:size-64">
                                 <span class="absolute -left-1 -top-1 size-6 border-l-4 border-t-4 border-white"></span>
                                 <span class="absolute -right-1 -top-1 size-6 border-r-4 border-t-4 border-white"></span>
                                 <span class="absolute -bottom-1 -left-1 size-6 border-b-4 border-l-4 border-white"></span>
                                 <span class="absolute -bottom-1 -right-1 size-6 border-b-4 border-r-4 border-white"></span>
                             </div>
+                            <div data-last-result class="ocular-last-result-card absolute bottom-2 left-2 right-2 z-20 hidden border border-white/20 bg-white/95 p-2.5 shadow-2xl backdrop-blur sm:bottom-4 sm:left-4 sm:right-auto sm:w-[min(32rem,calc(100%-2rem))] sm:p-4">
+                                <div class="flex items-center gap-3 sm:gap-4">
+                                    <button type="button" data-open-photo class="hidden shrink-0 overflow-hidden border-2 border-white bg-white shadow-sm" aria-label="Perbesar foto ID card">
+                                        <img data-last-result-photo src="" alt="Foto ID card siswa" class="h-24 w-16 object-contain sm:h-32 sm:w-24">
+                                    </button>
+                                    <div class="min-w-0 flex-1">
+                                        <h3 data-last-result-name class="truncate text-lg font-black leading-tight text-ocular-teal sm:text-2xl">—</h3>
+                                        <p data-last-result-class class="mt-0.5 truncate text-xs text-ocular-copy/70 sm:mt-1 sm:text-base">—</p>
+                                        <div class="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 font-mono text-[9px] text-ocular-copy/60 sm:mt-3 sm:gap-x-4 sm:text-[10px]">
+                                            <span data-last-result-nisn>NISN —</span>
+                                            <span data-last-result-time>--:--</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
-                        <div class="flex gap-2">
+                        <div class="flex flex-wrap gap-2">
                             <x-ui.button
                                 type="button"
                                 variant="primary"
                                 data-start-scanner
-                                class="disabled:cursor-not-allowed disabled:opacity-50"
+                                class="size-11 px-0 py-0 disabled:cursor-not-allowed disabled:opacity-50"
+                                aria-label="Buka kamera"
+                                title="Buka kamera"
                             >
-                                Buka Kamera
+                                <i data-lucide="camera" class="size-4"></i>
+                                <span class="sr-only">Buka kamera</span>
                             </x-ui.button>
 
                             <x-ui.button
@@ -92,9 +110,25 @@
                                 variant="outline"
                                 data-stop-scanner
                                 disabled
-                                class="disabled:cursor-not-allowed disabled:opacity-50"
+                                class="size-11 px-0 py-0 disabled:cursor-not-allowed disabled:opacity-50"
+                                aria-label="Tutup kamera"
+                                title="Tutup kamera"
                             >
-                                Tutup Kamera
+                                <i data-lucide="camera-off" class="size-4"></i>
+                                <span class="sr-only">Tutup kamera</span>
+                            </x-ui.button>
+
+                            <x-ui.button
+                                type="button"
+                                variant="muted"
+                                data-switch-camera
+                                disabled
+                                class="size-11 px-0 py-0 disabled:cursor-not-allowed disabled:opacity-50"
+                                aria-label="Ganti ke kamera depan"
+                                title="Ganti kamera"
+                            >
+                                <i data-lucide="switch-camera" class="size-4"></i>
+                                <span data-switch-camera-label class="sr-only">Ganti kamera</span>
                             </x-ui.button>
 
                             <x-ui.button
@@ -102,31 +136,30 @@
                                 variant="muted"
                                 data-fullscreen-scanner
                                 aria-pressed="false"
+                                aria-label="Masuk layar penuh"
+                                class="size-11 px-0 py-0"
+                                title="Layar penuh"
                             >
-                                Layar penuh
+                                <i data-fullscreen-icon data-lucide="maximize-2" class="size-4"></i>
+                                <span data-fullscreen-label class="sr-only">Layar penuh</span>
                             </x-ui.button>
+                            <div class="ml-auto flex items-center gap-1 border border-slate-200 bg-white px-1 py-1">
+                                <button type="button" data-zoom-down disabled class="grid size-9 place-items-center text-lg font-bold text-ocular-teal disabled:cursor-not-allowed disabled:opacity-30" aria-label="Kurangi zoom">−</button>
+                                <span data-zoom-label class="min-w-12 text-center font-mono text-[10px] font-bold text-ocular-copy/60">Zoom —</span>
+                                <button type="button" data-zoom-up disabled class="grid size-9 place-items-center text-lg font-bold text-ocular-teal disabled:cursor-not-allowed disabled:opacity-30" aria-label="Tambah zoom">+</button>
+                            </div>
                         </div>
                     </div>
 
-                    <div class="border border-slate-200 bg-ocular-surface p-4 sm:p-5">
-                        <h3 class="font-medium">Input Manual NISN</h3>
-                        <form method="POST" action="{{ route('guru.sessions.scan', $session) }}" class="mt-3 flex flex-col gap-3 sm:flex-row" data-manual-scan-form>
-                            @csrf
+                    <dialog data-photo-dialog class="border-0 bg-transparent p-0 backdrop:bg-slate-950/80" style="position: fixed; inset: 0; width: fit-content; max-width: 92vw; height: fit-content; margin: auto">
+                        <div class="relative inline-block border-4 border-white bg-white shadow-2xl">
+                            <button type="button" data-close-photo class="absolute right-2 top-2 z-10 grid size-10 place-items-center bg-slate-950/70 text-2xl text-white" aria-label="Tutup foto">×</button>
+                            <img data-dialog-photo src="" alt="Foto ID card siswa ukuran besar" class="block max-h-[86vh] max-w-[92vw] object-contain">
+                        </div>
+                    </dialog>
 
-                            <input
-                                name="nisn"
-                                data-manual-nisn
-                                placeholder="Ketik NISN"
-                                autofocus
-                                class="w-full rounded-md border px-3 py-2"
-                            >
-
-                            <x-ui.button variant="teal">
-                                Tandai Hadir
-                            </x-ui.button>
-                        </form>
-
-                        <div class="mt-4 text-sm text-slate-500">
+                    <div class="border border-slate-200 bg-ocular-surface px-4 py-3 text-sm text-slate-500">
+                        <div class="flex flex-wrap items-center gap-x-5 gap-y-1">
                             <p>Scan terakhir: <span data-last-scanned>-</span></p>
                             <p>Status kamera: <span data-scanner-status>mati</span></p>
                         </div>
@@ -144,15 +177,36 @@
 
         <div class="overflow-hidden rounded-lg border border-slate-200 bg-white">
             <div class="border-b border-slate-200 px-4 py-4 sm:px-5">
-                <div class="flex items-center justify-between gap-3">
-                    <h2 class="text-xs font-black uppercase tracking-widest text-ocular-teal">Daftar siswa</h2>
-                    <span class="font-mono text-[10px] font-bold text-ocular-accent">{{ $studentTotal }} siswa</span>
+                <div class="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+                    <div>
+                        <h2 class="text-xs font-black uppercase tracking-widest text-ocular-teal">Daftar siswa</h2>
+                        <p class="mt-1 font-mono text-[10px] font-bold text-ocular-accent">{{ $studentTotal }} siswa · <span data-selected-attendance-count>0</span> dipilih</p>
+                    </div>
+                    @if ($session->date->gte(now()->subDays(3)->startOfDay()))
+                        <form id="bulk-attendance-form" method="POST" action="{{ route('guru.sessions.attendances.bulk-update', $session) }}" class="flex flex-col gap-2 sm:flex-row sm:items-center" data-bulk-attendance-form>
+                            @csrf
+                            @method('PATCH')
+                            <select name="status" class="min-h-10 border border-slate-300 bg-white px-3 text-xs font-semibold text-slate-700" aria-label="Status massal">
+                                @foreach (['hadir' => 'Hadir', 'sakit' => 'Sakit', 'izin' => 'Izin', 'alpha' => 'Alpha'] as $value => $label)
+                                    <option value="{{ $value }}">{{ $label }}</option>
+                                @endforeach
+                            </select>
+                            <button data-bulk-attendance-submit disabled class="min-h-10 border border-ocular-teal bg-ocular-teal px-4 text-[10px] font-black uppercase tracking-wider text-white disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-100 disabled:text-slate-400">Terapkan ke pilihan</button>
+                        </form>
+                    @else
+                        <span class="text-xs text-slate-400">Perubahan terkunci H+3</span>
+                    @endif
                 </div>
             </div>
-            <div class="overflow-x-auto">
-            <table class="w-full text-left text-sm">
+            <div class="hidden overflow-x-auto md:block">
+            <table class="w-full min-w-[820px] text-left text-sm">
                 <thead class="bg-slate-100">
                     <tr>
+                        <th class="w-12 px-4 py-3">
+                            @if ($session->date->gte(now()->subDays(3)->startOfDay()))
+                                <input type="checkbox" data-select-all-attendances class="size-4 border-slate-300 text-ocular-teal" aria-label="Pilih semua siswa di halaman ini">
+                            @endif
+                        </th>
                         <th class="px-4 py-3">Siswa</th>
                         <th class="px-4 py-3">NISN</th>
                         <th class="px-4 py-3">Status</th>
@@ -162,7 +216,12 @@
                 </thead>
                 <tbody class="divide-y divide-slate-200">
                     @foreach ($attendances as $attendance)
-                        <tr data-attendance-row="{{ $attendance->id }}" data-attendance-status="{{ $attendance->status }}">
+                        <tr data-attendance-row="{{ $attendance->id }}" data-attendance-student-id="{{ $attendance->student_id }}" data-attendance-status="{{ $attendance->status }}">
+                            <td class="px-4 py-3">
+                                @if ($session->date->gte(now()->subDays(3)->startOfDay()))
+                                    <input form="bulk-attendance-form" type="checkbox" name="attendance_ids[]" value="{{ $attendance->id }}" data-attendance-checkbox class="size-4 border-slate-300 text-ocular-teal" aria-label="Pilih {{ $attendance->student->name }}">
+                                @endif
+                            </td>
                             <td class="px-4 py-3">{{ $attendance->student->name }}</td>
                             <td class="px-4 py-3">{{ $attendance->student->nisn }}</td>
                             <td class="px-4 py-3">
@@ -173,10 +232,10 @@
                             </td>
                             <td class="px-4 py-3">
                                 @if ($session->date->gte(now()->subDays(3)->startOfDay()))
-                                    <form method="POST" action="{{ route('guru.sessions.attendances.update', [$session, $attendance]) }}" class="flex min-w-36 items-center gap-2">
+                                    <form method="POST" action="{{ route('guru.sessions.attendances.update', [$session, $attendance]) }}" class="flex min-w-36 items-center gap-2" data-attendance-update-form>
                                         @csrf
                                         @method('PATCH')
-                                        <select name="status" class="min-h-10 rounded-md border border-slate-300 bg-white px-2 text-xs" aria-label="Status {{ $attendance->student->name }}">
+                                        <select name="status" data-attendance-status-select class="min-h-10 rounded-md border border-slate-300 bg-white px-2 text-xs" aria-label="Status {{ $attendance->student->name }}">
                                             @foreach (['hadir' => 'Hadir', 'sakit' => 'Sakit', 'izin' => 'Izin', 'alpha' => 'Alpha'] as $value => $label)
                                                 <option value="{{ $value }}" @selected($attendance->status === $value)>{{ $label }}</option>
                                             @endforeach
@@ -192,6 +251,46 @@
                 </tbody>
             </table>
             </div>
+            <div class="divide-y divide-slate-100 md:hidden">
+                @foreach ($attendances as $attendance)
+                    <article class="space-y-3 p-4" data-attendance-row="{{ $attendance->id }}" data-attendance-student-id="{{ $attendance->student_id }}" data-attendance-status="{{ $attendance->status }}">
+                        <div class="flex items-start justify-between gap-3">
+                            <div class="flex min-w-0 items-start gap-3">
+                                @if ($session->date->gte(now()->subDays(3)->startOfDay()))
+                                    <input form="bulk-attendance-form" type="checkbox" name="attendance_ids[]" value="{{ $attendance->id }}" data-attendance-checkbox class="mt-1 size-4 shrink-0 border-slate-300 text-ocular-teal" aria-label="Pilih {{ $attendance->student->name }}">
+                                @endif
+                                <div class="min-w-0">
+                                    <h3 class="truncate font-semibold text-ocular-teal">{{ $attendance->student->name }}</h3>
+                                    <p class="mt-1 font-mono text-[10px] text-ocular-copy/60">NISN {{ $attendance->student->nisn }}</p>
+                                </div>
+                            </div>
+                            <x-ui.status-badge :status="$attendance->status" data-attendance-status-badge />
+                        </div>
+                        <dl class="grid grid-cols-2 gap-3 border-t border-slate-100 pt-3 text-xs">
+                            <div>
+                                <dt class="text-ocular-copy/50">Scan</dt>
+                                <dd class="mt-1 font-mono" data-attendance-scanned-at>{{ $attendance->scanned_at?->format('H:i') ?? '-' }}</dd>
+                            </div>
+                            <div>
+                                <dt class="text-ocular-copy/50">Status</dt>
+                                <dd class="mt-1 font-semibold" data-attendance-status-text>{{ strtoupper($attendance->status) }}</dd>
+                            </div>
+                        </dl>
+                        @if ($session->date->gte(now()->subDays(3)->startOfDay()))
+                            <form method="POST" action="{{ route('guru.sessions.attendances.update', [$session, $attendance]) }}" class="grid gap-2 border-t border-slate-100 pt-3" data-attendance-update-form>
+                                @csrf
+                                @method('PATCH')
+                                <select name="status" data-attendance-status-select class="min-h-10 border border-slate-300 bg-white px-3 text-xs" aria-label="Status {{ $attendance->student->name }}">
+                                    @foreach (['hadir' => 'Hadir', 'sakit' => 'Sakit', 'izin' => 'Izin', 'alpha' => 'Alpha'] as $value => $label)
+                                        <option value="{{ $value }}" @selected($attendance->status === $value)>{{ $label }}</option>
+                                    @endforeach
+                                </select>
+                                <button class="min-h-10 border border-slate-300 px-3 text-xs font-semibold text-slate-700 hover:bg-slate-50">Simpan status</button>
+                            </form>
+                        @endif
+                    </article>
+                @endforeach
+            </div>
             <div class="px-4 pb-4 sm:px-5"><x-ui.pagination :paginator="$attendances" /></div>
         </div>
 
@@ -201,6 +300,39 @@
         <script>
             document.addEventListener('DOMContentLoaded', () => {
                 const root = document.querySelector('[data-qr-scanner]');
+                const attendanceCheckboxes = [...document.querySelectorAll('[data-attendance-checkbox]')];
+                const selectAllAttendances = document.querySelector('[data-select-all-attendances]');
+                const selectedAttendanceCount = document.querySelector('[data-selected-attendance-count]');
+                const bulkAttendanceSubmit = document.querySelector('[data-bulk-attendance-submit]');
+                const bulkAttendanceForm = document.querySelector('[data-bulk-attendance-form]');
+                const attendanceUpdateForms = [...document.querySelectorAll('[data-attendance-update-form]')];
+
+                const syncBulkAttendance = () => {
+                    const selectedCount = attendanceCheckboxes.filter((checkbox) => checkbox.checked).length;
+
+                    if (selectedAttendanceCount) {
+                        selectedAttendanceCount.textContent = String(selectedCount);
+                    }
+
+                    if (bulkAttendanceSubmit) {
+                        bulkAttendanceSubmit.disabled = selectedCount === 0;
+                    }
+
+                    if (selectAllAttendances) {
+                        selectAllAttendances.checked = selectedCount > 0 && selectedCount === attendanceCheckboxes.length;
+                        selectAllAttendances.indeterminate = selectedCount > 0 && selectedCount < attendanceCheckboxes.length;
+                    }
+                };
+
+                selectAllAttendances?.addEventListener('change', () => {
+                    attendanceCheckboxes.forEach((checkbox) => {
+                        checkbox.checked = selectAllAttendances.checked;
+                    });
+                    syncBulkAttendance();
+                });
+
+                attendanceCheckboxes.forEach((checkbox) => checkbox.addEventListener('change', syncBulkAttendance));
+                syncBulkAttendance();
 
                 if (!root) {
                     return;
@@ -210,13 +342,28 @@
                 const csrfToken = root.dataset.csrfToken;
                 const startButton = root.querySelector('[data-start-scanner]');
                 const stopButton = root.querySelector('[data-stop-scanner]');
+                const switchCameraButton = root.querySelector('[data-switch-camera]');
+                const switchCameraLabel = root.querySelector('[data-switch-camera-label]');
                 const fullscreenButton = root.querySelector('[data-fullscreen-scanner]');
+                const fullscreenLabel = root.querySelector('[data-fullscreen-label]');
+                const fullscreenIcon = root.querySelector('[data-fullscreen-icon]');
                 const scannerStage = root.querySelector('[data-scanner-stage]');
                 const messageBox = root.querySelector('[data-scan-message]');
                 const lastScanned = root.querySelector('[data-last-scanned]');
                 const scannerStatus = root.querySelector('[data-scanner-status]');
-                const manualScanForm = root.querySelector('[data-manual-scan-form]');
-                const manualNisn = root.querySelector('[data-manual-nisn]');
+                const zoomDown = root.querySelector('[data-zoom-down]');
+                const zoomUp = root.querySelector('[data-zoom-up]');
+                const zoomLabel = root.querySelector('[data-zoom-label]');
+                const lastResult = root.querySelector('[data-last-result]');
+                const lastResultPhoto = root.querySelector('[data-last-result-photo]');
+                const openPhoto = root.querySelector('[data-open-photo]');
+                const photoDialog = root.querySelector('[data-photo-dialog]');
+                const dialogPhoto = root.querySelector('[data-dialog-photo]');
+                const closePhoto = root.querySelector('[data-close-photo]');
+                const lastResultName = root.querySelector('[data-last-result-name]');
+                const lastResultClass = root.querySelector('[data-last-result-class]');
+                const lastResultNisn = root.querySelector('[data-last-result-nisn]');
+                const lastResultTime = root.querySelector('[data-last-result-time]');
                 const networkDot = root.querySelector('[data-network-dot]');
                 const networkLabel = root.querySelector('[data-network-label]');
                 const countHadir = document.querySelector('[data-count-hadir]');
@@ -227,6 +374,9 @@
 
                 let scanner = null;
                 let isScanning = false;
+                let facingMode = 'environment';
+                let zoomCapability = null;
+                let zoomValue = null;
 
                 const setMessage = (message, type = 'success') => {
                     messageBox.textContent = message;
@@ -246,18 +396,79 @@
                     oscillator.stop(audioContext.currentTime + duration / 1000);
                 };
 
+                const speechName = (studentName) => {
+                    if (String(studentName || '').trim().toLowerCase() === 'abdu salam') {
+                        return 'Kocin';
+                    }
+
+                    return studentName;
+                };
+
                 const announceAttendance = (studentName) => {
                     if (!studentName || !('speechSynthesis' in window) || typeof SpeechSynthesisUtterance === 'undefined') {
                         return;
                     }
 
                     window.speechSynthesis.cancel();
-                    const announcement = new SpeechSynthesisUtterance(`${studentName} hadir`);
+                    const announcement = new SpeechSynthesisUtterance(`${speechName(studentName)} hadir`);
                     announcement.lang = 'id-ID';
                     announcement.rate = 0.95;
                     announcement.pitch = 1;
                     announcement.volume = 1;
                     window.speechSynthesis.speak(announcement);
+                };
+
+                const setLastResult = (student, attendance) => {
+                    if (!student || !attendance) return;
+
+                    lastResult.classList.remove('hidden', 'ocular-last-result-card--animate');
+                    void lastResult.offsetWidth;
+                    lastResult.classList.add('ocular-last-result-card--animate');
+                    lastResultName.textContent = student.name || 'Siswa';
+                    lastResultClass.textContent = student.class ? `Kelas ${student.class}` : 'Kelas —';
+                    lastResultNisn.textContent = `NISN ${student.nisn || '—'}`;
+                    lastResultTime.textContent = attendance.scanned_at || '--:--';
+
+                    if (student.photo_url) {
+                        lastResultPhoto.src = student.photo_url;
+                        dialogPhoto.src = student.photo_url;
+                        openPhoto.classList.remove('hidden');
+                    } else {
+                        lastResultPhoto.removeAttribute('src');
+                        dialogPhoto.removeAttribute('src');
+                        openPhoto.classList.add('hidden');
+                    }
+                };
+
+                const refreshZoom = () => {
+                    if (!scanner || !isScanning) return;
+
+                    try {
+                        zoomCapability = scanner.getRunningTrackCameraCapabilities().zoomFeature();
+                        if (!zoomCapability.isSupported()) {
+                            zoomLabel.textContent = 'Zoom —';
+                            zoomDown.disabled = true;
+                            zoomUp.disabled = true;
+                            return;
+                        }
+
+                        zoomValue = zoomCapability.value() ?? zoomCapability.min();
+                        zoomLabel.textContent = `Zoom ${Number(zoomValue).toFixed(1)}×`;
+                        zoomDown.disabled = zoomValue <= zoomCapability.min();
+                        zoomUp.disabled = zoomValue >= zoomCapability.max();
+                    } catch (error) {
+                        zoomLabel.textContent = 'Zoom —';
+                    }
+                };
+
+                const changeZoom = async (direction) => {
+                    if (!zoomCapability?.isSupported()) return;
+                    const next = Math.min(zoomCapability.max(), Math.max(zoomCapability.min(), Number(zoomValue) + direction * zoomCapability.step()));
+                    await zoomCapability.apply(next);
+                    zoomValue = next;
+                    zoomLabel.textContent = `Zoom ${Number(next).toFixed(1)}×`;
+                    zoomDown.disabled = next <= zoomCapability.min();
+                    zoomUp.disabled = next >= zoomCapability.max();
                 };
 
                 const setNetworkState = () => {
@@ -270,8 +481,11 @@
                     if (!fullscreenButton) return;
 
                     const isFullscreen = document.fullscreenElement === scannerStage;
-                    fullscreenButton.textContent = isFullscreen ? 'Keluar layar penuh' : 'Layar penuh';
+                    if (fullscreenLabel) fullscreenLabel.textContent = isFullscreen ? 'Keluar' : 'Penuh';
+                    fullscreenButton.setAttribute('aria-label', isFullscreen ? 'Keluar layar penuh' : 'Masuk layar penuh');
                     fullscreenButton.setAttribute('aria-pressed', isFullscreen ? 'true' : 'false');
+                    fullscreenIcon?.setAttribute('data-lucide', isFullscreen ? 'minimize-2' : 'maximize-2');
+                    window.refreshLucideIcons?.();
                 };
 
                 const incrementCount = (element, amount) => {
@@ -279,7 +493,9 @@
                         return;
                     }
 
-                    element.textContent = String(Math.max(0, Number(element.textContent.trim()) + amount));
+                    const value = element.querySelector('.font-mono.text-2xl') || element;
+                    const current = Number.parseInt(value.textContent, 10);
+                    value.textContent = String(Math.max(0, (Number.isNaN(current) ? 0 : current) + amount));
                 };
 
                 const updateCounts = (oldStatus, newStatus) => {
@@ -333,22 +549,93 @@
                 };
 
                 const updateAttendanceRow = (attendance) => {
-                    const row = document.querySelector(`[data-attendance-row="${attendance.id}"]`);
+                    const rows = [
+                        ...document.querySelectorAll(`[data-attendance-row="${attendance.id}"]`),
+                        ...document.querySelectorAll(`[data-attendance-student-id="${attendance.student_id}"]`),
+                    ].filter((row, index, all) => all.indexOf(row) === index);
 
-                    if (!row) {
-                        return;
+                    if (rows.length === 0) {
+                        return false;
                     }
 
-                    const oldStatus = row.dataset.attendanceStatus;
+                    const oldStatus = rows[0].dataset.attendanceStatus;
                     const newStatus = attendance.status;
-                    const badge = row.querySelector('[data-attendance-status-badge]');
-                    const scannedAt = row.querySelector('[data-attendance-scanned-at]');
 
-                    row.dataset.attendanceStatus = newStatus;
-                    setBadgeStatus(badge, newStatus);
-                    scannedAt.textContent = attendance.scanned_at || '-';
+                    rows.forEach((row) => {
+                        const badge = row.querySelector('[data-attendance-status-badge]');
+                        const scannedAt = row.querySelector('[data-attendance-scanned-at]');
+                        const statusText = row.querySelector('[data-attendance-status-text]');
+                        const statusSelect = row.querySelector('[data-attendance-status-select]');
+
+                        row.dataset.attendanceStatus = newStatus;
+                        setBadgeStatus(badge, newStatus);
+                        if (scannedAt) scannedAt.textContent = attendance.scanned_at || '-';
+                        if (statusText) statusText.textContent = String(newStatus).toUpperCase();
+                        if (statusSelect) statusSelect.value = newStatus;
+                    });
+
                     updateCounts(oldStatus, newStatus);
+                    return true;
                 };
+
+                const submitAttendanceForm = async (form, submitButton = null) => {
+                    const button = submitButton || form.querySelector('button[type="submit"], button:not([type])');
+                    const originalText = button?.textContent;
+
+                    if (button) {
+                        button.disabled = true;
+                        button.textContent = 'Menyimpan...';
+                    }
+
+                    try {
+                        const response = await fetch(form.action, {
+                            method: form.method || 'POST',
+                            headers: {
+                                'Accept': 'application/json',
+                                'X-Requested-With': 'XMLHttpRequest',
+                            },
+                            body: new FormData(form),
+                        });
+
+                        const payload = await response.json().catch(() => null);
+
+                        if (!response.ok) {
+                            setMessage(payload?.message || payload?.errors?.attendance?.[0] || 'Status gagal disimpan.', 'error');
+                            return;
+                        }
+
+                        if (payload?.attendance) {
+                            updateAttendanceRow(payload.attendance);
+                        }
+
+                        if (payload?.attendances) {
+                            payload.attendances.forEach(updateAttendanceRow);
+                            attendanceCheckboxes.forEach((checkbox) => {
+                                checkbox.checked = false;
+                            });
+                            syncBulkAttendance();
+                        }
+
+                        setMessage(payload?.message || 'Status berhasil disimpan.', 'success');
+                    } catch (error) {
+                        setMessage('Koneksi bermasalah. Status belum tersimpan.', 'error');
+                    } finally {
+                        if (button) {
+                            button.disabled = false;
+                            button.textContent = originalText;
+                        }
+                    }
+                };
+
+                attendanceUpdateForms.forEach((form) => form.addEventListener('submit', (event) => {
+                    event.preventDefault();
+                    submitAttendanceForm(form);
+                }));
+
+                bulkAttendanceForm?.addEventListener('submit', (event) => {
+                    event.preventDefault();
+                    submitAttendanceForm(bulkAttendanceForm, bulkAttendanceSubmit);
+                });
 
                 const submitScan = async (nisn) => {
                     try {
@@ -379,7 +666,11 @@
                         announceAttendance(payload?.student?.name);
 
                         if (payload?.attendance) {
-                            updateAttendanceRow(payload.attendance);
+                            const rowUpdated = updateAttendanceRow(payload.attendance);
+                            setLastResult(payload.student, payload.attendance);
+                            if (!rowUpdated) {
+                                setMessage(`${payload?.message || 'Scan berhasil.'} Siswa ini tidak ada di halaman daftar yang sedang tampil.`, 'success');
+                            }
                         }
                     } catch (error) {
                         beep(220, 180);
@@ -412,51 +703,7 @@
                     submitScan(nisn);
                 };
 
-                manualScanForm?.addEventListener('submit', (event) => {
-                    event.preventDefault();
-                    handleScan(manualNisn?.value || '');
-                    if (manualNisn) {
-                        manualNisn.value = '';
-                        manualNisn.focus();
-                    }
-                });
-
-                startButton.addEventListener('click', async () => {
-                    if (!window.Html5Qrcode) {
-                        setMessage('Library scanner belum ter-load. Pastikan Vite aktif: docker compose up -d vite atau npm run dev.', 'error');
-                        return;
-                    }
-
-                    if (isScanning) {
-                        return;
-                    }
-
-                    scanner = new window.Html5Qrcode('qr-reader');
-                    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-                    if (AudioContextClass) {
-                        audioContext = new AudioContextClass();
-                        await audioContext.resume();
-                    }
-
-                    try {
-                        await scanner.start(
-                            { facingMode: 'environment' },
-                            { fps: 10 },
-                            handleScan,
-                            () => {}
-                        );
-
-                        isScanning = true;
-                        startButton.disabled = true;
-                        stopButton.disabled = false;
-                        scannerStatus.textContent = 'aktif';
-                        setMessage('Kamera aktif. Arahkan ke QR Code siswa.', 'success');
-                    } catch (error) {
-                        setMessage('Kamera gagal dibuka. Cek izin kamera dan pastikan pakai HTTPS atau localhost.', 'error');
-                    }
-                });
-
-                stopButton.addEventListener('click', async () => {
+                const stopScanner = async (message = 'Kamera ditutup.') => {
                     if (!scanner || !isScanning) {
                         return;
                     }
@@ -467,8 +714,85 @@
                     isScanning = false;
                     startButton.disabled = false;
                     stopButton.disabled = true;
+                    if (switchCameraButton) switchCameraButton.disabled = true;
                     scannerStatus.textContent = 'mati';
-                    setMessage('Kamera ditutup.', 'success');
+                    zoomCapability = null;
+                    zoomValue = null;
+                    zoomLabel.textContent = 'Zoom —';
+                    zoomDown.disabled = true;
+                    zoomUp.disabled = true;
+                    setMessage(message, 'success');
+                };
+
+                const startScanner = async () => {
+                    if (!window.Html5Qrcode) {
+                        setMessage('Library scanner belum ter-load. Pastikan Vite aktif: docker compose up -d vite atau npm run dev.', 'error');
+                        return;
+                    }
+
+                    if (isScanning) {
+                        return;
+                    }
+
+                    scanner = new window.Html5Qrcode('qr-reader', {
+                        formatsToSupport: [window.Html5QrcodeSupportedFormats?.QR_CODE ?? 0],
+                        useBarCodeDetectorIfSupported: true,
+                    });
+                    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+                    if (AudioContextClass) {
+                        audioContext = new AudioContextClass();
+                        await audioContext.resume();
+                    }
+
+                    try {
+                        await scanner.start(
+                            { facingMode: { ideal: facingMode } },
+                            {
+                                fps: 15,
+                                qrbox: (width, height) => {
+                                    const size = Math.floor(Math.min(width, height) * 0.62);
+                                    return { width: size, height: size };
+                                },
+                                videoConstraints: {
+                                    facingMode: { ideal: facingMode },
+                                    width: { ideal: 1920 },
+                                    height: { ideal: 1080 },
+                                },
+                            },
+                            handleScan,
+                            () => {}
+                        );
+
+                        isScanning = true;
+                        startButton.disabled = true;
+                        stopButton.disabled = false;
+                        if (switchCameraButton) {
+                            switchCameraButton.disabled = false;
+                            switchCameraButton.setAttribute('aria-label', facingMode === 'environment' ? 'Ganti ke kamera depan' : 'Ganti ke kamera belakang');
+                            if (switchCameraLabel) switchCameraLabel.textContent = facingMode === 'environment' ? 'Depan' : 'Belakang';
+                        }
+                        scannerStatus.textContent = 'aktif';
+                        refreshZoom();
+                        setMessage('Kamera aktif. Arahkan ke QR Code siswa.', 'success');
+                    } catch (error) {
+                        setMessage('Kamera gagal dibuka. Cek izin kamera dan pastikan pakai HTTPS atau localhost.', 'error');
+                    }
+                };
+
+                startButton.addEventListener('click', startScanner);
+                stopButton.addEventListener('click', () => stopScanner());
+                switchCameraButton?.addEventListener('click', async () => {
+                    facingMode = facingMode === 'environment' ? 'user' : 'environment';
+                    await stopScanner('Mengganti kamera...');
+                    await startScanner();
+                });
+
+                zoomDown.addEventListener('click', () => changeZoom(-1));
+                zoomUp.addEventListener('click', () => changeZoom(1));
+                openPhoto.addEventListener('click', () => photoDialog?.showModal());
+                closePhoto.addEventListener('click', () => photoDialog?.close());
+                photoDialog.addEventListener('click', (event) => {
+                    if (event.target === photoDialog) photoDialog.close();
                 });
 
                 fullscreenButton?.addEventListener('click', async () => {
