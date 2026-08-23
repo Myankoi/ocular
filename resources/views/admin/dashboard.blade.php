@@ -3,7 +3,6 @@
         <x-slot:actions>
             <div
                 class="inline-flex items-center gap-2 border border-ocular-teal/15 bg-white px-3 py-2 text-xs text-ocular-copy/70 shadow-[var(--shadow-card)]">
-                <span class="size-2 rounded-full bg-ocular-orange"></span>
                 {{ $activeAcademicYear?->name ?? 'Tahun ajaran belum diatur' }} @if ($activeAcademicYear)
                     · {{ $activeAcademicYear->semester === 1 ? 'Ganjil' : 'Genap' }}
                 @endif
@@ -27,7 +26,7 @@
                                 ini</p>
                             <h2 class="mt-2 text-4xl font-black tracking-tight">{{ $todayPercentage }}<span
                                     class="text-xl text-white/60">%</span></h2>
-                        </div><span class="grid size-11 place-items-center rounded-full bg-white/10 text-xl">✓</span>
+                        </div><span class="grid size-11 place-items-center rounded-full bg-white/10"><i data-lucide="check" class="size-5"></i></span>
                     </div>
                     <div class="mt-6 h-2 overflow-hidden rounded-full bg-white/15">
                         <div class="h-full rounded-full bg-ocular-orange transition-all"

@@ -1,13 +1,17 @@
 <x-layouts.app title="Edit Tahun Ajaran - Ocular">
-    <h1 class="mb-6 text-2xl font-semibold">Edit Tahun Ajaran</h1>
+    <x-ui.page eyebrow="Academic Years" title="Edit tahun ajaran" description="Perbarui semester atau periode tahun ajaran tanpa menghapus histori terkait.">
+        <x-ui.card class="max-w-2xl border border-ocular-teal/15">
+            <form method="POST" action="{{ route('admin.academic-years.update', $academicYear) }}" class="space-y-5">
+                @csrf
+                @method('PUT')
 
-    <form method="POST" action="{{ route('admin.academic-years.update', $academicYear) }}" class="max-w-xl space-y-4">
-        @csrf
-        @method('PUT')
+                @include('admin.academic-years.form', ['academicYear' => $academicYear])
 
-        @include('admin.academic-years.form', ['academicYear' => $academicYear])
-
-        <button class="rounded-md bg-slate-900 px-4 py-2 text-white">Update</button>
-        <a href="{{ route('admin.academic-years.index') }}" class="ml-2 text-sm underline">Batal</a>
-    </form>
+                <div class="flex flex-wrap items-center gap-2 border-t border-slate-100 pt-5">
+                    <x-ui.button>Update tahun ajaran</x-ui.button>
+                    <x-ui.link-button :href="route('admin.academic-years.index')" variant="muted">Batal</x-ui.link-button>
+                </div>
+            </form>
+        </x-ui.card>
+    </x-ui.page>
 </x-layouts.app>

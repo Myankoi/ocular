@@ -13,7 +13,7 @@ class SubjectController extends Controller
 {
     public function index(Request $request): View
     {
-        $search = trim($request->string('q')->toString());
+        $search = trim((string) $request->input('search', $request->input('q', '')));
         return view('admin.subjects.index', [
             'subjects' => Subject::query()
                 ->withCount(['teachers', 'schedules'])
@@ -70,6 +70,29 @@ class SubjectController extends Controller
         return redirect()
             ->route('admin.subjects.index')
             ->with('success', 'Mata pelajaran berhasil dihapus.');
+    }
+
+    public function bulkDestroy(Request $request): RedirectResponse
+    {
+        $data = $request->validate([
+            'subject_ids' => ['required', 'array', 'min:1'],
+            'subject_ids.*' => ['integer', 'exists:subjects,id'],
+        ]);
+
+        $subjects = Subject::query()->whereIn('id', array_unique($data['subject_ids']))->get();
+        $deletable = $subjects->filter(fn (Subject $subject): bool => ! $subject->teachers()->exists() && ! $subject->schedules()->exists());
+        $skipped = $subjects->count() - $deletable->count();
+        $deletable->each->delete();
+
+        $redirect = redirect()->route('admin.subjects.index');
+        if ($deletable->isNotEmpty()) {
+            $redirect->with('success', $deletable->count() . ' mata pelajaran berhasil dihapus.');
+        }
+        if ($skipped > 0) {
+            $redirect->with('warning', $skipped . ' mata pelajaran dilewati karena masih dipakai guru atau jadwal.');
+        }
+
+        return $redirect;
     }
 
     private function validatedData(Request $request, ?Subject $subject = null): array

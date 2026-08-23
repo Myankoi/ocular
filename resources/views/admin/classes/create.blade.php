@@ -1,12 +1,16 @@
 <x-layouts.app title="Tambah Kelas - Ocular">
-    <h1 class="mb-6 text-2xl font-semibold">Tambah Kelas</h1>
+    <x-ui.page eyebrow="Classes" title="Tambah kelas" description="Tambahkan rombongan belajar untuk tahun ajaran yang dipilih.">
+        <x-ui.card class="max-w-2xl border border-ocular-teal/15">
+            <form method="POST" action="{{ route('admin.classes.store') }}" class="space-y-5">
+                @csrf
 
-    <form method="POST" action="{{ route('admin.classes.store') }}" class="max-w-xl space-y-4">
-        @csrf
+                @include('admin.classes.form', ['class' => null])
 
-        @include('admin.classes.form', ['class' => null])
-
-        <button class="rounded-md bg-slate-900 px-4 py-2 text-white">Simpan</button>
-        <a href="{{ route('admin.classes.index') }}" class="ml-2 text-sm underline">Batal</a>
-    </form>
+                <div class="flex flex-wrap items-center gap-2 border-t border-slate-100 pt-5">
+                    <x-ui.button>Simpan kelas</x-ui.button>
+                    <x-ui.link-button :href="route('admin.classes.index')" variant="muted">Batal</x-ui.link-button>
+                </div>
+            </form>
+        </x-ui.card>
+    </x-ui.page>
 </x-layouts.app>

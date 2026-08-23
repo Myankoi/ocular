@@ -14,7 +14,7 @@ class AcademicYearController extends Controller
 {
     public function index(Request $request): View
     {
-        $search = trim($request->string('q')->toString());
+        $search = trim((string) $request->input('search', $request->input('q', '')));
         return view('admin.academic-years.index', [
             'academicYears' => AcademicYear::query()
                 ->when($search !== '', fn ($query) => $query->where('name', 'like', "%{$search}%"))
@@ -87,6 +87,29 @@ class AcademicYearController extends Controller
         return redirect()
             ->route('admin.academic-years.index')
             ->with('success', 'Tahun ajaran berhasil dihapus.');
+    }
+
+    public function bulkDestroy(Request $request): RedirectResponse
+    {
+        $data = $request->validate([
+            'academic_year_ids' => ['required', 'array', 'min:1'],
+            'academic_year_ids.*' => ['integer', 'exists:academic_years,id'],
+        ]);
+
+        $years = AcademicYear::query()->whereIn('id', array_unique($data['academic_year_ids']))->get();
+        $deletable = $years->filter(fn (AcademicYear $year): bool => ! $year->classes()->exists() && ! $year->schedules()->exists());
+        $skipped = $years->count() - $deletable->count();
+        $deletable->each->delete();
+
+        $redirect = redirect()->route('admin.academic-years.index');
+        if ($deletable->isNotEmpty()) {
+            $redirect->with('success', $deletable->count() . ' tahun ajaran berhasil dihapus.');
+        }
+        if ($skipped > 0) {
+            $redirect->with('warning', $skipped . ' tahun ajaran dilewati karena masih memiliki kelas atau jadwal.');
+        }
+
+        return $redirect;
     }
 
     private function validatedData(Request $request, ?AcademicYear $academicYear = null): array

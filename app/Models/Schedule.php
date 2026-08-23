@@ -19,12 +19,14 @@ class Schedule extends Model
         'day_of_week',
         'start_time',
         'end_time',
+        'archived_at',
     ];
 
     protected function casts(): array
     {
         return [
             'day_of_week' => 'integer',
+            'archived_at' => 'datetime',
         ];
     }
 

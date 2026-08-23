@@ -8,6 +8,7 @@ use App\Models\Student;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\View\View;
 
@@ -69,7 +70,19 @@ class StudentController extends Controller
 
     public function update(Request $request, Student $student): RedirectResponse
     {
-        $student->update($this->validatedData($request, $student));
+        $data = $this->validatedData($request, $student);
+        $oldPhoto = $student->photo;
+
+        if ($request->hasFile('photo_upload')) {
+            $data['photo'] = $request->file('photo_upload')->store('students/idcard', 'local');
+        }
+
+        unset($data['photo_upload']);
+        $student->update($data);
+
+        if ($request->hasFile('photo_upload') && $oldPhoto && Storage::disk('local')->exists($oldPhoto)) {
+            Storage::disk('local')->delete($oldPhoto);
+        }
 
         return redirect()
             ->route('admin.students.index')
@@ -89,6 +102,31 @@ class StudentController extends Controller
         return redirect()
             ->route('admin.students.index')
             ->with('success', 'Siswa berhasil dihapus.');
+    }
+
+    public function bulkDestroy(Request $request): RedirectResponse
+    {
+        $data = $request->validate([
+            'student_ids' => ['required', 'array', 'min:1'],
+            'student_ids.*' => ['integer', 'distinct', 'exists:students,id'],
+        ]);
+
+        $ids = array_values(array_unique($data['student_ids']));
+        $blocked = Student::query()
+            ->whereIn('id', $ids)
+            ->whereHas('attendances')
+            ->pluck('name');
+        $deleted = Student::query()
+            ->whereIn('id', $ids)
+            ->whereDoesntHave('attendances')
+            ->delete();
+
+        $response = back()->with('success', "{$deleted} siswa berhasil dihapus.");
+        if ($blocked->isNotEmpty()) {
+            $response->with('warning', $blocked->count().' siswa dilewati karena sudah memiliki histori absensi.');
+        }
+
+        return $response;
     }
 
     public function import(Request $request): RedirectResponse
@@ -175,6 +213,7 @@ class StudentController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'class_id' => ['required', 'integer', 'exists:classes,id'],
             'photo' => ['nullable', 'string', 'max:255'],
+            'photo_upload' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:10240'],
             'is_active' => ['nullable', 'boolean'],
         ]) + [
             'is_active' => false,

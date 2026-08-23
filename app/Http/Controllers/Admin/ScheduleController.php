@@ -17,8 +17,9 @@ class ScheduleController extends Controller
 {
     public function index(Request $request): View
     {
-        $search = trim($request->string('q')->toString());
+        $search = trim((string) $request->input('search', $request->input('q', '')));
         $filters = fn ($query) => $query
+            ->whereNull('archived_at')
             ->when($request->filled('academic_year_id'), fn ($query) => $query->where('academic_year_id', $request->integer('academic_year_id')))
             ->when($request->filled('class_id'), fn ($query) => $query->where('class_id', $request->integer('class_id')))
             ->when($request->filled('user_id'), fn ($query) => $query->where('user_id', $request->integer('user_id')))
@@ -30,9 +31,11 @@ class ScheduleController extends Controller
 
         $gridSchedules = $filters(Schedule::query())
             ->with(['academicYear', 'teacher', 'subject', 'schoolClass'])
+            ->withCount('attendanceSessions')
             ->orderBy('day_of_week')
             ->orderBy('start_time')
             ->get();
+        $mergedGridSchedules = $this->mergeContinuousSchedules($gridSchedules);
 
         $gridClasses = SchoolClass::query()
             ->with('academicYear')
@@ -42,11 +45,12 @@ class ScheduleController extends Controller
             ->orderBy('name')
             ->get();
 
-        $grid = $this->buildGrid($gridSchedules);
+        $grid = $this->buildGrid($mergedGridSchedules);
 
         return view('admin.schedules.index', [
             'schedules' => $filters(Schedule::query())
                 ->with(['academicYear', 'teacher', 'subject', 'schoolClass'])
+                ->withCount('attendanceSessions')
                 ->orderBy('day_of_week')
                 ->orderBy('start_time')
                 ->paginate(15)
@@ -60,7 +64,7 @@ class ScheduleController extends Controller
             'search' => $search,
             'days' => $this->days(),
             'selectedDay' => max(1, min(6, $request->integer('day', 1))),
-            'gridSchedules' => $gridSchedules,
+            'gridSchedules' => $mergedGridSchedules,
             'gridClasses' => $gridClasses,
             'grid' => $grid,
             'scheduleRows' => $this->scheduleRows(),
@@ -99,6 +103,12 @@ class ScheduleController extends Controller
 
     public function update(Request $request, Schedule $schedule): RedirectResponse
     {
+        if ($schedule->attendanceSessions()->exists()) {
+            return back()->withErrors([
+                'schedule' => 'Jadwal yang sudah punya sesi absensi tidak dapat diedit. Arsipkan jadwal ini lalu buat jadwal pengganti.',
+            ]);
+        }
+
         $data = $this->validatedData($request, $schedule);
 
         if ($this->hasConflict($data, $schedule)) {
@@ -117,9 +127,11 @@ class ScheduleController extends Controller
     public function destroy(Schedule $schedule): RedirectResponse
     {
         if ($schedule->attendanceSessions()->exists()) {
-            return back()->withErrors([
-                'delete' => 'Jadwal tidak bisa dihapus karena sudah punya sesi absensi.',
-            ]);
+            $schedule->update(['archived_at' => now()]);
+
+            return redirect()
+                ->route('admin.schedules.index')
+                ->with('success', 'Jadwal diarsipkan agar histori absensi tetap aman. Buat jadwal baru untuk pengaturan berikutnya.');
         }
 
         $schedule->delete();
@@ -127,6 +139,32 @@ class ScheduleController extends Controller
         return redirect()
             ->route('admin.schedules.index')
             ->with('success', 'Jadwal berhasil dihapus.');
+    }
+
+    public function bulkDestroy(Request $request): RedirectResponse
+    {
+        $data = $request->validate([
+            'schedule_ids' => ['required', 'array', 'min:1'],
+            'schedule_ids.*' => ['integer', 'exists:schedules,id'],
+        ]);
+
+        $schedules = Schedule::query()->whereNull('archived_at')->whereIn('id', array_unique($data['schedule_ids']))->get();
+        $deletable = $schedules->filter(fn (Schedule $schedule): bool => ! $schedule->attendanceSessions()->exists());
+        $archivable = $schedules->filter(fn (Schedule $schedule): bool => $schedule->attendanceSessions()->exists());
+        $deletable->each->delete();
+        $archivable->each->update(['archived_at' => now()]);
+
+        $redirect = redirect()->route('admin.schedules.index', ['tab' => 'list']);
+        $messages = [];
+        if ($deletable->isNotEmpty()) {
+            $messages[] = $deletable->count() . ' jadwal dihapus';
+        }
+        if ($archivable->isNotEmpty()) {
+            $messages[] = $archivable->count() . ' jadwal diarsipkan karena memiliki histori absensi';
+        }
+        $redirect->with('success', implode(', ', $messages) . '.');
+
+        return $redirect;
     }
 
     private function validatedData(Request $request, ?Schedule $schedule = null): array
@@ -154,6 +192,7 @@ class ScheduleController extends Controller
     private function hasConflict(array $data, ?Schedule $schedule = null): bool
     {
         return Schedule::query()
+            ->whereNull('archived_at')
             ->where('academic_year_id', $data['academic_year_id'])
             ->where('day_of_week', $data['day_of_week'])
             ->where(function ($query) use ($data): void {
@@ -231,6 +270,42 @@ class ScheduleController extends Controller
             ['type' => 'jp', 'jp' => 9, 'start' => '13:30', 'end' => '14:15'],
             ['type' => 'jp', 'jp' => 10, 'start' => '14:15', 'end' => '15:00'],
         ];
+    }
+
+    private function mergeContinuousSchedules($schedules)
+    {
+        return $schedules
+            ->groupBy(fn (Schedule $schedule): string => implode('|', [
+                $schedule->academic_year_id,
+                $schedule->user_id,
+                $schedule->subject_id,
+                $schedule->class_id,
+                $schedule->day_of_week,
+            ]))
+            ->flatMap(function ($group) {
+                $merged = collect();
+
+                foreach ($group->sortBy('start_time')->values() as $schedule) {
+                    $last = $merged->last();
+                    $lastEnd = $last ? substr((string) $last->end_time, 0, 5) : null;
+                    $start = substr((string) $schedule->start_time, 0, 5);
+
+                    if ($last && $lastEnd === $start) {
+                        $last->end_time = $schedule->end_time;
+                        $last->attendance_sessions_count = ($last->attendance_sessions_count ?? 0) + ($schedule->attendance_sessions_count ?? 0);
+                        continue;
+                    }
+
+                    $merged->push(clone $schedule);
+                }
+
+                return $merged;
+            })
+            ->sortBy([
+                ['day_of_week', 'asc'],
+                ['start_time', 'asc'],
+            ])
+            ->values();
     }
 
     private function buildGrid($schedules): array

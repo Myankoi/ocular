@@ -28,7 +28,7 @@ class TeacherController extends Controller
 
     public function index(Request $request): View
     {
-        $search = trim($request->string('q')->toString());
+        $search = trim((string) $request->input('search', $request->input('q', '')));
 
         return view('admin.teachers.index', [
             'teachers' => User::query()
@@ -115,9 +115,13 @@ class TeacherController extends Controller
         abort_unless($teacher->role === 'guru', 404);
 
         if ($teacher->schedules()->exists()) {
-            return back()->withErrors([
-                'delete' => 'Guru tidak bisa dihapus karena sudah punya jadwal.',
-            ]);
+            $archived = $teacher->schedules()->whereNull('archived_at')->update(['archived_at' => now()]);
+            $teacher->subjects()->detach();
+            $teacher->update(['is_active' => false]);
+
+            return redirect()
+                ->route('admin.teachers.index')
+                ->with('success', "Guru dinonaktifkan dan {$archived} jadwal aktifnya diarsipkan.");
         }
 
         $teacher->subjects()->detach();
@@ -126,6 +130,48 @@ class TeacherController extends Controller
         return redirect()
             ->route('admin.teachers.index')
             ->with('success', 'Guru berhasil dihapus.');
+    }
+
+    public function bulkDestroy(Request $request): RedirectResponse
+    {
+        $data = $request->validate([
+            'teacher_ids' => ['required', 'array', 'min:1'],
+            'teacher_ids.*' => ['integer', 'exists:users,id'],
+        ]);
+
+        $ids = array_values(array_unique($data['teacher_ids']));
+        $teachers = User::query()
+            ->whereIn('id', $ids)
+            ->where('role', 'guru')
+            ->get();
+        $deletable = $teachers->filter(fn (User $teacher): bool => ! $teacher->schedules()->exists());
+        $archivable = $teachers->filter(fn (User $teacher): bool => $teacher->schedules()->exists());
+
+        $deletable->each(function (User $teacher): void {
+            $teacher->subjects()->detach();
+            $teacher->delete();
+        });
+
+        $archivedSchedules = 0;
+        $archivable->each(function (User $teacher) use (&$archivedSchedules): void {
+            $archivedSchedules += $teacher->schedules()->whereNull('archived_at')->update(['archived_at' => now()]);
+            $teacher->subjects()->detach();
+            $teacher->update(['is_active' => false]);
+        });
+
+        $redirect = redirect()->route('admin.teachers.index');
+        $messages = [];
+        if ($deletable->isNotEmpty()) {
+            $messages[] = $deletable->count() . ' guru dihapus';
+        }
+        if ($archivable->isNotEmpty()) {
+            $messages[] = $archivable->count() . " guru dinonaktifkan dan {$archivedSchedules} jadwal diarsipkan";
+        }
+        if ($messages) {
+            $redirect->with('success', implode(', ', $messages) . '.');
+        }
+
+        return $redirect;
     }
 
     private function validatedData(Request $request, ?User $teacher = null): array

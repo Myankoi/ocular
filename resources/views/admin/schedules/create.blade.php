@@ -7,7 +7,7 @@
                 @include('admin.schedules.form', ['schedule' => null])
                 <div class="flex flex-col-reverse gap-2 border-t border-ocular-teal/10 pt-4 sm:flex-row sm:justify-end">
                     <x-ui.link-button :href="route('admin.schedules.index')" variant="muted">Batal</x-ui.link-button>
-                    <x-ui.button variant="teal">Simpan jadwal</x-ui.button>
+                    <x-ui.button>Simpan jadwal</x-ui.button>
                 </div>
             </form>
         </x-ui.card>
