@@ -1,8 +1,7 @@
 <x-layouts.app title="Login - Ocular">
     <div class="mx-auto flex min-h-[calc(100vh-4rem)] max-w-md flex-col justify-center py-8">
         <div class="mb-8 text-center">
-            <div class="mx-auto grid size-16 place-items-center bg-ocular-teal text-3xl text-white shadow-sm">◉</div>
-            <h1 class="mt-5 text-3xl font-black tracking-tight text-ocular-teal">OCULAR</h1>
+            <img src="{{ asset('images/ocular-logo.png') }}" alt="Ocular" class="mx-auto h-16 w-auto object-contain">
             <p class="mt-1 text-[10px] font-semibold uppercase tracking-[0.35em] text-ocular-teal/70">Sistem Absensi Digital RPL</p>
             <p class="mt-2 text-[10px] uppercase tracking-widest text-slate-400">SMKN 24 Jakarta</p>
         </div>

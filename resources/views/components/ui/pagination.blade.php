@@ -15,15 +15,16 @@
 
             <div class="hidden items-center gap-1 sm:flex">
                 @foreach ($paginator->onEachSide(1)->linkCollection() as $link)
-                    @if ($link['page'] === null)
+                    @php($label = strip_tags((string) ($link['label'] ?? '')))
+                    @if (str_contains($label, 'Previous') || str_contains($label, 'Next'))
                         @continue
                     @endif
-                    @if ($link['label'] === '...')
+                    @if ($label === '...')
                         <span class="grid size-9 place-items-center text-slate-400">…</span>
                     @elseif ($link['active'])
-                        <span class="grid size-9 place-items-center bg-ocular-teal text-xs font-bold text-white" aria-current="page">{{ $link['label'] }}</span>
+                        <span class="grid size-9 place-items-center bg-ocular-teal text-xs font-bold text-white" aria-current="page">{{ $label }}</span>
                     @else
-                        <a href="{{ $link['url'] }}" class="grid size-9 place-items-center border border-slate-200 text-xs text-ocular-teal hover:bg-ocular-teal/5">{{ $link['label'] }}</a>
+                        <a href="{{ $link['url'] }}" class="grid size-9 place-items-center border border-slate-200 text-xs text-ocular-teal hover:bg-ocular-teal/5">{{ $label }}</a>
                     @endif
                 @endforeach
             </div>

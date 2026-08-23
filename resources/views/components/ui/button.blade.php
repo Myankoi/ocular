@@ -6,7 +6,7 @@
 @php
     $variants = [
         'primary' => 'bg-ocular-orange text-white hover:bg-ocular-orange-dark focus-visible:ring-ocular-orange',
-        'teal' => 'bg-ocular-teal text-white hover:bg-ocular-teal-dark focus-visible:ring-ocular-teal',
+        'teal' => 'border border-ocular-teal/30 bg-ocular-teal/5 text-ocular-teal hover:bg-ocular-teal/10 focus-visible:ring-ocular-teal',
         'outline' => 'border border-ocular-teal/30 bg-white text-ocular-teal hover:bg-ocular-teal/5 focus-visible:ring-ocular-teal',
         'muted' => 'border border-slate-200 bg-slate-50 text-ocular-copy hover:bg-slate-100 focus-visible:ring-ocular-teal',
         'danger' => 'bg-rose-600 text-white hover:bg-rose-700 focus-visible:ring-rose-500',
