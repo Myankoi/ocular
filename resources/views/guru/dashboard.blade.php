@@ -8,7 +8,7 @@
         <x-slot:actions>
             @if ($activeYear)
                 <span class="inline-flex min-h-11 items-center gap-2 border border-ocular-teal/20 bg-white px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-ocular-teal">
-                    <span class="text-ocular-orange">▣</span>
+                    <i data-lucide="calendar-days" class="size-4 text-ocular-orange"></i>
                     {{ $activeYear->name }} · {{ $activeYear->semester === 1 ? 'Ganjil' : 'Genap' }}
                 </span>
             @endif
@@ -24,7 +24,7 @@
         <section aria-labelledby="schedule-heading">
             <div class="mb-4 flex items-center justify-between gap-3">
                 <h2 id="schedule-heading" class="text-sm font-black uppercase tracking-widest text-ocular-teal">Jadwal hari ini</h2>
-                <a href="{{ route('guru.schedules.index') }}" class="text-[10px] font-black uppercase tracking-wider text-ocular-teal underline decoration-ocular-orange underline-offset-4 hover:text-ocular-teal-dark">Lihat semua jadwal →</a>
+                <a href="{{ route('guru.schedules.index') }}" class="inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-wider text-ocular-teal underline decoration-ocular-orange underline-offset-4 hover:text-ocular-teal-dark">Lihat semua jadwal <i data-lucide="arrow-right" class="size-3.5"></i></a>
             </div>
 
             <div class="space-y-4">
@@ -46,8 +46,8 @@
                         </div>
 
                         <div class="mt-5 flex flex-wrap items-center gap-4 text-ocular-copy">
-                            <span class="flex items-center gap-2 font-mono text-xs font-bold"><span class="text-ocular-accent">◷</span>{{ substr($schedule->start_time, 0, 5) }} – {{ substr($schedule->end_time, 0, 5) }}</span>
-                            <span class="flex items-center gap-2 font-mono text-xs font-bold"><span class="text-ocular-accent">⌖</span>Ruang kelas</span>
+                            <span class="flex items-center gap-2 font-mono text-xs font-bold"><i data-lucide="clock-3" class="size-4 text-ocular-accent"></i>{{ substr($schedule->start_time, 0, 5) }} – {{ substr($schedule->end_time, 0, 5) }}</span>
+                            <span class="flex items-center gap-2 font-mono text-xs font-bold"><i data-lucide="map-pin" class="size-4 text-ocular-accent"></i>Ruang kelas</span>
                         </div>
 
                         <div class="mt-5">
@@ -76,11 +76,11 @@
             <h2 id="quick-actions-heading" class="mb-4 text-sm font-black uppercase tracking-widest text-ocular-teal">Akses cepat</h2>
             <div class="grid grid-cols-2 gap-3">
                 <x-ui.link-button :href="route('guru.attendances.index')" variant="muted" class="justify-start text-left">
-                    <span class="text-lg text-ocular-teal">▤</span>
+                    <i data-lucide="clipboard-list" class="size-5 text-ocular-teal"></i>
                     <span>Rekap absensi</span>
                 </x-ui.link-button>
                 <x-ui.link-button :href="route('guru.schedules.index')" variant="muted" class="justify-start text-left">
-                    <span class="text-lg text-ocular-teal">▧</span>
+                    <i data-lucide="calendar-clock" class="size-5 text-ocular-teal"></i>
                     <span>Jadwal mengajar</span>
                 </x-ui.link-button>
             </div>

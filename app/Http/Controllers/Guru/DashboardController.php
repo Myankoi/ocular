@@ -22,7 +22,8 @@ class DashboardController extends Controller
                     'schoolClass',
                     'attendanceSessions' => fn ($query) => $query->whereDate('date', $date)->with('attendances'),
                 ])
-                ->where('user_id', $request->user()->id)
+            ->where('user_id', $request->user()->id)
+            ->whereNull('archived_at')
                 ->when($activeYear, fn ($query) => $query->where('academic_year_id', $activeYear->id))
                 ->where('day_of_week', $today)
                 ->orderBy('start_time')

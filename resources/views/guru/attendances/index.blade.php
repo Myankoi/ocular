@@ -4,47 +4,19 @@
     <x-ui.page eyebrow="Laporan Guru" title="Riwayat absensi" description="Data kelas dan jadwal yang Anda ampu.">
         <x-slot:actions>
             <x-ui.link-button :href="route('guru.attendances.export', request()->query())" variant="outline">
-                <span class="text-base">↓</span>
+                <i data-lucide="download" class="size-4"></i>
                 Unduh Excel
             </x-ui.link-button>
+            <x-ui.filter-panel title="Filter laporan" description="Pilih parameter untuk mempersempit data absensi." :active="$activeFilterCount">
+                <form method="GET" class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                    <label class="block text-xs font-bold uppercase tracking-wider text-ocular-teal">Kelas<select name="class_id" class="mt-2 min-h-11 w-full border border-slate-300 bg-white px-3 text-sm focus:border-ocular-teal focus:outline-none focus:ring-2 focus:ring-ocular-teal/20"><option value="">Semua kelas</option>@foreach ($classes as $class)<option value="{{ $class->id }}" @selected(($filters['class_id'] ?? null) == $class->id)>{{ $class->name }}</option>@endforeach</select></label>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-ocular-teal">Mata pelajaran<select name="subject_id" class="mt-2 min-h-11 w-full border border-slate-300 bg-white px-3 text-sm focus:border-ocular-teal focus:outline-none focus:ring-2 focus:ring-ocular-teal/20"><option value="">Semua mata pelajaran</option>@foreach ($subjects as $subject)<option value="{{ $subject->id }}" @selected(($filters['subject_id'] ?? null) == $subject->id)>{{ $subject->name }}</option>@endforeach</select></label>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-ocular-teal">Dari tanggal<input type="date" name="date_from" value="{{ $filters['date_from'] ?? '' }}" class="mt-2 min-h-11 w-full border border-slate-300 px-3 text-sm focus:border-ocular-teal focus:outline-none focus:ring-2 focus:ring-ocular-teal/20"></label>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-ocular-teal">Sampai tanggal<input type="date" name="date_to" value="{{ $filters['date_to'] ?? '' }}" class="mt-2 min-h-11 w-full border border-slate-300 px-3 text-sm focus:border-ocular-teal focus:outline-none focus:ring-2 focus:ring-ocular-teal/20"></label>
+                    <div class="flex flex-wrap gap-2 sm:col-span-2 lg:col-span-4"><x-ui.button variant="teal"><i data-lucide="search" class="size-4"></i> Tampilkan laporan</x-ui.button><x-ui.link-button :href="route('guru.attendances.index')" variant="muted">Reset filter</x-ui.link-button></div>
+                </form>
+            </x-ui.filter-panel>
         </x-slot:actions>
-
-        <x-ui.card class="border border-ocular-teal/15 bg-white">
-            <div class="mb-5 flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-4">
-                <div>
-                    <h2 class="text-sm font-black uppercase tracking-widest text-ocular-teal">Filter laporan</h2>
-                    <p class="mt-1 text-xs text-ocular-copy/60">Pilih parameter untuk mempersempit data absensi.</p>
-                </div>
-                @if ($activeFilterCount)
-                    <span class="bg-ocular-orange/10 px-2 py-1 text-[10px] font-black uppercase tracking-wider text-ocular-orange">{{ $activeFilterCount }} filter aktif</span>
-                @endif
-            </div>
-
-            <form method="GET" class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                <label class="block text-xs font-bold uppercase tracking-wider text-ocular-teal">Kelas
-                    <select name="class_id" class="mt-2 min-h-11 w-full border border-slate-300 bg-white px-3 text-sm focus:border-ocular-teal focus:outline-none focus:ring-2 focus:ring-ocular-teal/20">
-                        <option value="">Semua kelas</option>
-                        @foreach ($classes as $class)<option value="{{ $class->id }}" @selected(($filters['class_id'] ?? null) == $class->id)>{{ $class->name }}</option>@endforeach
-                    </select>
-                </label>
-                <label class="block text-xs font-bold uppercase tracking-wider text-ocular-teal">Mata pelajaran
-                    <select name="subject_id" class="mt-2 min-h-11 w-full border border-slate-300 bg-white px-3 text-sm focus:border-ocular-teal focus:outline-none focus:ring-2 focus:ring-ocular-teal/20">
-                        <option value="">Semua mata pelajaran</option>
-                        @foreach ($subjects as $subject)<option value="{{ $subject->id }}" @selected(($filters['subject_id'] ?? null) == $subject->id)>{{ $subject->name }}</option>@endforeach
-                    </select>
-                </label>
-                <label class="block text-xs font-bold uppercase tracking-wider text-ocular-teal">Dari tanggal
-                    <input type="date" name="date_from" value="{{ $filters['date_from'] ?? '' }}" class="mt-2 min-h-11 w-full border border-slate-300 px-3 text-sm focus:border-ocular-teal focus:outline-none focus:ring-2 focus:ring-ocular-teal/20">
-                </label>
-                <label class="block text-xs font-bold uppercase tracking-wider text-ocular-teal">Sampai tanggal
-                    <input type="date" name="date_to" value="{{ $filters['date_to'] ?? '' }}" class="mt-2 min-h-11 w-full border border-slate-300 px-3 text-sm focus:border-ocular-teal focus:outline-none focus:ring-2 focus:ring-ocular-teal/20">
-                </label>
-                <div class="flex flex-wrap gap-2 sm:col-span-2 lg:col-span-4">
-                    <x-ui.button variant="teal"><span class="text-base">⌕</span> Tampilkan laporan</x-ui.button>
-                    <x-ui.link-button :href="route('guru.attendances.index')" variant="muted">Reset filter</x-ui.link-button>
-                </div>
-            </form>
-        </x-ui.card>
 
         <x-ui.card padding="p-0" class="overflow-hidden border border-slate-200">
             <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 px-4 py-4 sm:px-5">
