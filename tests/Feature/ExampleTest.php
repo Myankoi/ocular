@@ -14,6 +14,15 @@ class ExampleTest extends TestCase
     {
         $response = $this->get('/');
 
+        $response->assertRedirect('/login');
+    }
+
+    public function test_login_page_returns_a_successful_response(): void
+    {
+        $this->withoutVite();
+
+        $response = $this->get('/login');
+
         $response->assertStatus(200);
     }
 }

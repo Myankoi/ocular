@@ -1,58 +1,200 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Ocular
 
 <p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
+  <img src="public/images/ocular-logo.png" alt="Ocular" width="360">
 </p>
 
-## About Laravel
+<p align="center">
+  QR-based attendance management for RPL schools.
+</p>
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+Ocular is a portfolio-grade school attendance MVP designed for Rekayasa Perangkat Lunak (RPL) environments. It helps administrators manage academic data and gives teachers a focused workflow for opening attendance sessions, scanning student QR codes, correcting attendance status, and exporting reports.
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+The application is built around two roles: **Admin** and **Guru (Teacher)**. Students do not need an account; their NISN is encoded in the QR code on their ID card.
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## Highlights
 
-## Learning Laravel
+- Role-based authentication for Admin and Guru users.
+- QR-based attendance scanning from a browser camera.
+- Attendance sessions with roster-based validation.
+- Manual attendance updates for Hadir, Sakit, Izin, and Alpha.
+- Attendance history and admin override logging.
+- Master data management for students, teachers, classes, subjects, academic years, and schedules.
+- Schedule overlap validation for both classes and teachers.
+- Excel workbook import with preview and per-row validation feedback.
+- Excel attendance report export with filters.
+- Individual and class-level student QR code downloads.
+- Optional student photo support for scan verification.
+- Responsive admin and teacher dashboards.
+- Docker-based development and production stack.
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+## Roles
 
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+| Role | Responsibilities |
+| --- | --- |
+| **Admin** | Manage master data, import workbooks, generate QR codes, review attendance, edit attendance records, and export reports. |
+| **Guru** | View teaching schedules, open attendance sessions, scan student QR codes, update attendance, and export reports for assigned classes. |
+| **Student** | No account required. Presents an ID card containing a QR code with the student's NISN. |
 
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
+## Attendance workflow
 
-## Agentic Development
+~~~text
+Teacher signs in
+    -> selects a scheduled class
+    -> opens an attendance session
+    -> scans student QR codes
+    -> system validates the student roster
+    -> attendance status is updated in real time
+    -> teacher reviews and closes the session
+~~~
 
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
+The scanner validates that a student exists, is active, and belongs to the class attached to the session. A student who is not part of the session roster is rejected instead of creating an unrelated attendance record.
 
-```bash
-composer require laravel/boost --dev
+## Technology stack
 
-php artisan boost:install
-```
+- **Backend:** PHP 8.4, Laravel 13, Eloquent ORM
+- **Database:** MySQL 8.4 in Docker; SQLite is also supported by the Laravel configuration for local testing
+- **Frontend:** Blade, Tailwind CSS 4, Vite, Lucide
+- **QR scanning:** html5-qrcode
+- **QR generation:** Simple Software QR Code
+- **Reports/imports:** Laravel Excel
+- **Infrastructure:** Docker Compose, PHP-FPM, Nginx, Node.js 22
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+## Project structure
 
-## Contributing
+~~~text
+app/
+├── Console/Commands/       Scheduled and operational Artisan commands
+├── Exports/                Attendance report exports
+├── Http/Controllers/       Admin, Guru, and authentication flows
+├── Models/                 Eloquent domain models
+└── Services/               Workbook import and application services
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+database/
+├── migrations/             Database schema
+└── seeders/                Development users and sample school data
 
-## Code of Conduct
+resources/
+├── css/                    Tailwind design system and application styles
+├── js/                     QR scanner and frontend integrations
+└── views/                  Blade pages and reusable UI components
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+docker/                     PHP and Nginx runtime configuration
+compose.yaml                Development stack
+compose.prod.yaml           Production-oriented stack
+~~~
 
-## Security Vulnerabilities
+## Run with Docker
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+### Requirements
+
+- Docker Engine or Docker Desktop with Compose
+- Git
+
+### Development setup
+
+~~~bash
+git clone https://github.com/Myankoi/ocular.git
+cd ocular
+cp .env.example .env
+docker compose up --build -d
+~~~
+
+The development application is available at:
+
+- Application: <http://localhost:8000>
+- Adminer: <http://localhost:8090>
+
+The Vite service compiles frontend assets in watch mode into public/build, so the application remains available from the same origin. The development stack also runs the scheduler that closes expired attendance sessions.
+
+### Seed sample data
+
+~~~bash
+docker compose exec app php artisan db:seed
+~~~
+
+The seeders create sample academic data, teachers, students, schedules, and attendance records for development. Do not use seeded credentials or sample data in production.
+
+Development admin account:
+
+~~~text
+Email:    admin@rpl.sch.id
+Password: password
+~~~
+
+Change or replace this password before exposing the application beyond a local environment.
+
+### Useful commands
+
+~~~bash
+# Run the test suite
+docker compose exec app php artisan test
+
+# Check migration state
+docker compose exec app php artisan migrate:status
+
+# Clear Laravel caches
+docker compose exec app php artisan optimize:clear
+
+# Follow application and database logs
+docker compose logs -f app vite db
+
+# Stop the development stack
+docker compose down
+~~~
+
+The database is stored in a named Docker volume. docker compose down -v also removes the database and dependency volumes, so use it only when a full local reset is intended.
+
+## Production overview
+
+The production Compose file builds a PHP-FPM application image and serves the public directory through Nginx. It expects a separately managed .env.production file and runs migrations through a dedicated migration service.
+
+~~~bash
+cp .env.production.example .env.production
+chmod 600 .env.production
+docker compose -f compose.prod.yaml up -d --build
+~~~
+
+Before production deployment:
+
+- Set a strong APP_KEY and database credentials.
+- Set APP_DEBUG=false.
+- Configure a real domain and TLS at the reverse proxy.
+- Do not run the development seeders.
+- Configure persistent storage for uploaded student photos.
+- Verify backups, session storage, logs, and database access controls.
+
+## Privacy and security notes
+
+Ocular handles student names, NISN values, attendance records, and optional student photos. These are sensitive educational records and should be treated as personal data.
+
+- Never commit .env, .env.production, database dumps, student photos, or real attendance exports.
+- Use synthetic data for demos, screenshots, and testing.
+- Restrict student photo and attendance access to authorized Admin and Guru users.
+- QR codes currently contain the student's plain-text NISN. A copied QR code can therefore be presented from another device. The photo shown after a scan is a verification aid, not a guarantee against proxy attendance.
+- Replace all seeded passwords and configure proper HTTPS before deployment.
+
+## Current scope and limitations
+
+This repository focuses on the core attendance workflow and school data management. The following are intentionally not presented as completed product capabilities:
+
+- PDF report generation is not part of the documented MVP flow.
+- Dashboard charting is not required for the current documented workflow.
+- Automated test coverage is currently basic and should be expanded around authentication, schedule conflicts, imports, scanning, and report filters.
+- Students remain passive users and do not sign in to the application.
+
+## Testing
+
+Run the current test suite with:
+
+~~~bash
+docker compose exec app php artisan test
+~~~
+
+The test suite currently contains baseline feature and unit checks. New domain behavior should add coverage for role access, roster validation, attendance updates, schedule overlap rules, import errors, and report filters.
 
 ## License
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+Ocular is released under the MIT License. See [LICENSE](LICENSE).
+
+The license applies to the source code only. It does not grant permission to use real student data, photos, school branding, or credentials that may be supplied in a deployment.
